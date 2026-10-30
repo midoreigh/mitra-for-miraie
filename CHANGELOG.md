@@ -12,6 +12,11 @@ What's new in each release of Mitra for MirAIe. Versions follow
   Quick Settings tile for power and shortcuts when you long-press the app icon. Try it without
   an account from the sign-in screen.
 
+### Changed
+
+- After downloading an update, the panel reminds you that macOS may ask you to click Open
+  Anyway in System Settings ▸ Privacy & Security before the new version opens.
+
 ## [1.2.1] - 2026-10-31
 
 Fewer interruptions when you update.

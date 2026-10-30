@@ -37,7 +37,8 @@ struct UpdateBanner: View {
 
     private var detail: String {
         switch updates.state {
-        case .installerOpen: "Quit, drag the app into Applications to replace it, then open it again."
+        // Each new version is a new download to macOS, so Gatekeeper blocks it once more.
+        case .installerOpen: "Quit, drag the app into Applications to replace it, then open it. If macOS blocks it, click Open Anyway in System Settings ▸ Privacy & Security."
         default: "You have \(updates.currentVersion)."
         }
     }
