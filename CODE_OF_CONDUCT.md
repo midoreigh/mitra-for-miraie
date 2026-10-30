@@ -10,6 +10,6 @@ on what's best for the community, and don't harass, insult or demean anyone.
 ## Reporting
 
 If you experience or witness unacceptable behaviour, contact the maintainer at
-midoreigh@gmail.com. Reports are handled promptly and in confidence. The maintainer may remove
+contact@midoreigh.com. Reports are handled promptly and in confidence. The maintainer may remove
 comments, commits or other contributions, or ban contributors, for behaviour that breaks this
 code, following the Contributor Covenant's enforcement guidelines.
