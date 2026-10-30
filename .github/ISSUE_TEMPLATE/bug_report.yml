@@ -1,0 +1,46 @@
+name: Bug report
+description: Something doesn't work as it should.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: Thanks for reporting! Please don't include your MirAIe password or account details.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What you did, what you expected, and what happened instead.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open the panel
+        2. Click …
+        3. See …
+  - type: input
+    id: version
+    attributes:
+      label: Mitra for MirAIe version
+      description: Shown in Finder's Get Info for the app.
+      placeholder: 1.0.0
+    validations:
+      required: true
+  - type: input
+    id: macos
+    attributes:
+      label: macOS version
+      placeholder: macOS 26.1
+    validations:
+      required: true
+  - type: input
+    id: ac
+    attributes:
+      label: AC model
+      description: If you know it, e.g. from the sticker on the indoor unit.
+  - type: textarea
+    id: extra
+    attributes:
+      label: Screenshots or anything else

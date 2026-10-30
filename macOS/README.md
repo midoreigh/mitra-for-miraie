@@ -27,6 +27,16 @@ Unit tests for the shared package:
 cd Packages/MitraKit && swift test
 ```
 
+## Releases
+
+`scripts/release.sh [version]` builds a universal (Apple silicon and Intel) Release, signs it ad
+hoc and packages it as `build/release/Mitra-for-MirAIe-<version>.dmg`. Releases aren't signed
+with an Apple Developer ID, so App Groups and Keychain sharing are unavailable; the script
+removes the widget extension, which depends on them, and the app keeps its data to itself.
+
+Pushing a tag such as `v1.1.0` runs the same script in GitHub Actions and publishes the DMG on
+the Releases page, with that version's notes from `CHANGELOG.md`.
+
 ## Layout
 
 | Path | What's there |
@@ -36,6 +46,7 @@ cd Packages/MitraKit && swift test
 | `Shared` | App Intents and entities, compiled into both the app and the widgets. |
 | `Widgets` | The WidgetKit extension and the Control Center control. |
 | `Config` | Info.plists, entitlements and signing settings. |
+| `scripts/release.sh` | Builds the release DMG. |
 | `scripts/make-icon.swift` | Redraws the app icon. |
 
 New kinds of device can be added next to `ACState` and `ACCommand`; `DeviceKind` and `Device`

@@ -292,7 +292,7 @@ private struct ConvertiToggle: View {
     var body: some View {
         let isOn = level != Converti.off
         Menu {
-            Picker("Converti7", selection: Binding(get: { level }, set: select)) {
+            Picker("Converti7", selection: Binding(get: { level }, set: { select($0) })) {
                 Text("Off").tag(Converti.off)
                 ForEach(Converti.levels.reversed(), id: \.self) { Text("\($0)%").tag($0) }
             }

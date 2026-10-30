@@ -1,0 +1,34 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  macos:
+    name: Build and publish the macOS DMG
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select Xcode 26
+        run: sudo xcode-select -s "$(ls -d /Applications/Xcode_26*.app | sort -V | tail -1)"
+
+      - name: Build the DMG
+        run: macOS/scripts/release.sh "${GITHUB_REF_NAME#v}"
+
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          # This version's section of the changelog, then how to install.
+          awk -v v="$version" '$0 ~ "^## \\[" v "\\]" {on=1; next} /^## \[|^\[/ {on=0} on' CHANGELOG.md > notes.md
+          cat .github/release-install.md >> notes.md
+          gh release create "$GITHUB_REF_NAME" \
+            macOS/build/release/Mitra-for-MirAIe-$version.dmg \
+            macOS/build/release/Mitra-for-MirAIe-$version.dmg.sha256 \
+            --title "Mitra for MirAIe $version" --notes-file notes.md
