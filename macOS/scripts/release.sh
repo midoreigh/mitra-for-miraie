@@ -11,10 +11,11 @@
 # removed from the release; the menu bar app and Siri/Shortcuts work fully.
 #
 # The app is signed with the self-signed "Mitra for MirAIe" certificate when it's in a keychain
-# (the release workflow imports it from the repository's secrets). Every release signed with it
-# has the same identity, so macOS keeps trusting it with the user's saved login across updates;
-# an ad hoc signature changes with every build, which makes macOS ask again after each update.
-# Without the certificate the script falls back to ad hoc signing. SIGN_IDENTITY overrides it.
+# (the release workflow imports it from the repository's secrets), giving every release the same
+# designated requirement. It doesn't stop macOS asking for the user's password after updates:
+# without a Team ID, keychain items are partitioned by each build's code hash, so only a paid
+# Developer ID fixes that. Without the certificate the script signs ad hoc. SIGN_IDENTITY
+# overrides it.
 set -euo pipefail
 # Plain ASCII output: CI runs in the C locale, where bytes after a variable name can be read as part of it.
 cd "$(dirname "$0")/.."

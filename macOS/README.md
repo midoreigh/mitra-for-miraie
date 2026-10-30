@@ -32,10 +32,11 @@ cd Packages/MitraKit && swift test
 `scripts/release.sh [version]` builds a universal (Apple silicon and Intel) Release, signs it and
 packages it as `build/release/Mitra-for-MirAIe-<version>.dmg`. It signs with the self-signed
 "Mitra for MirAIe" certificate when one is in a keychain (the release workflow imports it from the
-`MACOS_SIGNING_CERTIFICATE` secrets), so every release keeps the same identity and macOS keeps
-trusting it with the saved login across updates; otherwise it signs ad hoc. Releases aren't signed
-with an Apple Developer ID, so App Groups and Keychain sharing are unavailable; the script
-removes the widget extension, which depends on them, and the app keeps its data to itself.
+`MACOS_SIGNING_CERTIFICATE` secrets), otherwise ad hoc. Either way there's no Apple Team ID, so
+macOS asks for the user's password after each update before the new build can read the keychain
+items the old one saved; only a paid Developer ID avoids that. Releases aren't signed with a
+Developer ID, so App Groups and Keychain sharing are unavailable; the script removes the widget
+extension, which depends on them, and the app keeps its data to itself.
 
 Pushing a tag such as `v1.1.0` runs the same script in GitHub Actions and publishes the DMG on
 the Releases page, with that version's notes from `CHANGELOG.md`.
