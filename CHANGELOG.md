@@ -12,6 +12,9 @@ for the Mac.
 
 ### What's new
 
+- **Go straight to the setting you want.** In the MirAIe app you step through modes, fan speeds
+  and air directions one tap at a time to reach the one you want. In Mitra every option is on
+  screen, so any of them is one click away.
 - **Your AC in the menu bar.** Click the icon and the whole AC is there, with the set temperature
   beside the icon at a glance.
 - **A living picture of your AC.** The panel draws your unit blowing air: the flap tilts, the air
