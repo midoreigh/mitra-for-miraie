@@ -53,7 +53,7 @@ straight away. A light on the drawn unit tells you whether your AC is online.
 Every action also works in Shortcuts, so your AC can switch on before you get home.
 
 <p align="center">
-  <img src="docs/media/showcase-panel-v3.png" alt="Three views of the panel: Cool mode with every setting one click away, the panel opening from the menu bar in Auto mode, and Preview Mode, for trying the app without signing in">
+  <img src="docs/media/showcase-panel-v4.png" alt="Three views of the panel: Cool mode with every setting one click away, the panel open under the menu bar in Auto mode, and Preview Mode in Dry, for trying the app without signing in">
 </p>
 
 ## Everything you can do
