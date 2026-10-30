@@ -5,6 +5,10 @@ What's new in each release of Mitra for MirAIe. Versions follow
 
 ## [Unreleased]
 
+### Fixed
+
+- The Settings window no longer shows a scroll bar when everything already fits.
+
 ## [1.0.0] - 2026-10-31
 
 Your Panasonic AC, right in your Mac's menu bar. This is the first release of Mitra for MirAIe
