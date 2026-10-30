@@ -14,6 +14,8 @@ What's new in each release of Mitra for MirAIe. Versions follow
 
 ### Changed
 
+- In Preview Mode, the right-click menu can show the update banner with a pretend version, to
+  try it without downloading anything.
 - When your AC is offline, the whole panel says so: the AC is drawn idle with its red light, the
   message appears right under it, and every control is dimmed, without the panel shifting.
 - After downloading an update, the panel reminds you that macOS may ask you to click Open

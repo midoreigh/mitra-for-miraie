@@ -191,18 +191,21 @@ struct ControlView: View {
     // MARK: - Controls
 
     private var offlineNotice: some View {
-        VStack(spacing: 3) {
-            Label {
+        // The second line starts under the first line's text, not under the icon, so the block
+        // reads as one piece; the block as a whole is centred.
+        Label {
+            VStack(alignment: .leading, spacing: 3) {
                 Text("\(store.selected?.name ?? "The AC") is offline")
-            } icon: {
-                Image(systemName: "wifi.slash").foregroundStyle(Color(red: 1.0, green: 0.62, blue: 0.25))
+                    .font(.headline)
+                Text("Check its power and Wi-Fi.")
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
             }
-            .font(.headline)
-            Text("Check its power and Wi-Fi.")
-                .font(.callout)
-                .foregroundStyle(.secondary)
+        } icon: {
+            Image(systemName: "wifi.slash")
+                .font(.headline)
+                .foregroundStyle(Color(red: 1.0, green: 0.62, blue: 0.25))
         }
-        .multilineTextAlignment(.center)
         .frame(maxWidth: .infinity)
     }
 
@@ -348,13 +351,15 @@ private struct FeatureIcon: View {
     let tint: Color
     /// The icon's colour while on.
     var icon: Color = .white
+    @Environment(\.isEnabled) private var isEnabled
 
     var body: some View {
         Image(systemName: symbol)
             .symbolVariant(isOn ? .fill : .none)
             .font(.callout.weight(.semibold))
             .frame(maxWidth: .infinity, minHeight: 34)
-            .foregroundStyle(isOn ? icon : .secondary)
+            // Disabled, the panel dims the fill, so a dark icon (the bulb's) would vanish into it.
+            .foregroundStyle(isOn ? (isEnabled ? icon : Color.white) : .secondary)
             .background(Capsule().fill(tint.gradient).opacity(isOn ? 1 : 0))
             .contentShape(.capsule)
             .animation(.easeOut(duration: 0.15), value: isOn)

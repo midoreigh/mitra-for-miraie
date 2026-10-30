@@ -39,7 +39,7 @@ struct UpdateBanner: View {
         switch updates.state {
         // Each new version is a new download to macOS, so Gatekeeper blocks it once more.
         case .installerOpen: "Quit, drag the app into Applications to replace it, then open it. If macOS blocks it, click Open Anyway in System Settings ▸ Privacy & Security."
-        default: "You have \(updates.currentVersion)."
+        default: updates.isSimulated ? "You have \(updates.currentVersion). (Preview: nothing is downloaded.)" : "You have \(updates.currentVersion)."
         }
     }
 
@@ -48,6 +48,9 @@ struct UpdateBanner: View {
         switch updates.state {
         case .downloading:
             ProgressView().controlSize(.small)
+        case .installerOpen where updates.isSimulated:
+            Button("Done") { updates.endSimulation() }
+                .buttonStyle(.glass)
         case .installerOpen:
             Button("Quit") { NSApp.terminate(nil) }
                 .buttonStyle(.glass)

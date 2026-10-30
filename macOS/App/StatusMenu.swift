@@ -29,6 +29,7 @@ final class StatusMenu: NSObject {
         if let store, store.isDemo {
             menu.addItem(withTitle: "Previewing a demo AC", action: nil, keyEquivalent: "").isEnabled = false
             menu.addItem(.separator())
+            menu.addItem(item("Preview Update Banner", #selector(previewUpdate)))
             menu.addItem(item("Exit Demo", #selector(togglePreview)))
         } else if let store, store.phase == .ready {
             var status = store.isLive ? "Connected" : "Connecting…"
@@ -39,6 +40,7 @@ final class StatusMenu: NSObject {
             let preview = item("Preview Mode (Don't Send Commands)", #selector(togglePreview))
             preview.state = store.isPreviewing ? .on : .off
             menu.addItem(preview)
+            if store.isPreviewing { menu.addItem(item("Preview Update Banner", #selector(previewUpdate))) }
         }
         menu.addItem(item("Settings…", #selector(showSettings), key: ","))
         if let release = UpdateChecker.shared.release {
@@ -68,6 +70,8 @@ final class StatusMenu: NSObject {
     }
 
     @objc private func togglePreview() { store?.isPreviewing.toggle() }
+
+    @objc private func previewUpdate() { UpdateChecker.shared.simulate() }
 
     @objc private func update() { Task { await UpdateChecker.shared.update() } }
 
