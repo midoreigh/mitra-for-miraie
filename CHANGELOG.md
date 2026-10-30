@@ -5,9 +5,14 @@ What's new in each release of Mitra for MirAIe. Versions follow
 
 ## [Unreleased]
 
-### Changed
+## [1.2.0] - 2026-10-31
 
-- The Display button glows a warm amber when on, like a lit bulb.
+A warmer look for the display light.
+
+### What's new
+
+- **The Display button glows like a lit bulb.** When the AC's display is on, its button now
+  shines a warm, incandescent amber.
 
 ## [1.1.0] - 2026-10-31
 
@@ -69,6 +74,7 @@ for the Mac.
 - Desktop and Notification Center widgets and the Control Center toggle are available when you
   build Mitra from source with your own Apple developer account.
 
-[Unreleased]: https://github.com/midoreigh/mitra-for-miraie/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/midoreigh/mitra-for-miraie/compare/v1.2.0...HEAD
+[1.2.0]: https://github.com/midoreigh/mitra-for-miraie/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/midoreigh/mitra-for-miraie/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/midoreigh/mitra-for-miraie/releases/tag/v1.0.0
