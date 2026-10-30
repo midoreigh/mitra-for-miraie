@@ -28,6 +28,8 @@ struct SettingsView: View {
                 .disabled(store.devices.count < 2)
             }
 
+            UpdatesSection(updates: UpdateChecker.shared)
+
             ForEach(store.devices) { device in
                 let capabilities = store.capabilities[device.id] ?? ACCapabilities()
                 Section {
@@ -99,5 +101,39 @@ struct SettingsView: View {
             NSSound.beep()
         }
         launchAtLogin = SMAppService.mainApp.status == .enabled
+    }
+}
+
+private struct UpdatesSection: View {
+    @Bindable var updates: UpdateChecker
+
+    var body: some View {
+        Section("Updates") {
+            LabeledContent("Version", value: updates.currentVersion)
+            Toggle("Check for updates automatically", isOn: $updates.checksAutomatically)
+            HStack {
+                Button("Check Now") { Task { await updates.check() } }
+                    .disabled(updates.state == .checking)
+                Spacer()
+                Text(status).foregroundStyle(.secondary)
+            }
+            if let release = updates.release, case .available = updates.state {
+                Button("Update to \(release.version)") { Task { await updates.update() } }
+                    .buttonStyle(.borderedProminent)
+            }
+        }
+    }
+
+    private var status: String {
+        switch updates.state {
+        case .checking: return "Checking…"
+        case .available(let release): return "Version \(release.version) is available"
+        case .downloading(let release): return "Downloading \(release.version)…"
+        case .installerOpen: return "Installer opened in Finder"
+        case .failed(let message): return message
+        case .upToDate, .idle:
+            guard let checked = updates.lastChecked else { return "Not checked yet" }
+            return "Up to date · checked \(checked.formatted(.relative(presentation: .named)))"
+        }
     }
 }

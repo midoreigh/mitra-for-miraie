@@ -19,8 +19,10 @@ struct ControlView: View {
                 }
                 .disabled(!store.canControl)
                 .opacity(state.isOn ? 1 : 0.55)
+                UpdateBanner(updates: UpdateChecker.shared)
             }
             .padding(16)
+            .animation(.snappy, value: UpdateChecker.shared.state)
         }
     }
 
@@ -214,8 +216,9 @@ struct ControlView: View {
                     store.send(.nanoe(!nanoe))
                 }
             }
-            // The same colour as the AC's own display.
-            FeatureToggle(title: "Display", symbol: "lightbulb", isOn: state.display, tint: .acDisplay) {
+            // A lit bulb: warm incandescent amber, with a dark icon so it reads on the light fill.
+            FeatureToggle(title: "Display", symbol: "lightbulb", isOn: state.display,
+                          tint: FeatureColor.bulb, icon: FeatureColor.bulbIcon) {
                 store.send(.display(!state.display))
             }
         }
@@ -257,13 +260,15 @@ private struct PowerButton: View {
     }
 }
 
-/// Each feature's colour while on: deep enough for a white icon to read clearly (about the
-/// depth of the display blue), and distinct from one another.
+/// Each feature's colour while on, distinct from one another. Most are deep enough for a white
+/// icon; the bulb is a light, warm amber and takes a dark icon instead.
 private enum FeatureColor {
     static let eco = Color(red: 0.11, green: 0.5, blue: 0.27)
     static let powerful = Color(red: 0.8, green: 0.34, blue: 0.06)
     static let converti = Color(red: 0.0, green: 0.45, blue: 0.5)
     static let nanoe = Color(red: 0.42, green: 0.32, blue: 0.82)
+    static let bulb = Color(red: 1.0, green: 0.74, blue: 0.36)
+    static let bulbIcon = Color(red: 0.3, green: 0.17, blue: 0.0)
 }
 
 /// One feature button: an icon, filled in the feature's colour while on.
@@ -272,11 +277,12 @@ private struct FeatureToggle: View {
     let symbol: String
     let isOn: Bool
     let tint: Color
+    var icon: Color = .white
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
-            FeatureIcon(symbol: symbol, isOn: isOn, tint: tint)
+            FeatureIcon(symbol: symbol, isOn: isOn, tint: tint, icon: icon)
         }
         .buttonStyle(.plain)
         .glassEffect(.regular, in: .capsule)
@@ -312,13 +318,15 @@ private struct FeatureIcon: View {
     let symbol: String
     let isOn: Bool
     let tint: Color
+    /// The icon's colour while on.
+    var icon: Color = .white
 
     var body: some View {
         Image(systemName: symbol)
             .symbolVariant(isOn ? .fill : .none)
             .font(.callout.weight(.semibold))
             .frame(maxWidth: .infinity, minHeight: 34)
-            .foregroundStyle(isOn ? Color.white : .secondary)
+            .foregroundStyle(isOn ? icon : .secondary)
             .background(Capsule().fill(tint.gradient).opacity(isOn ? 1 : 0))
             .contentShape(.capsule)
             .animation(.easeOut(duration: 0.15), value: isOn)

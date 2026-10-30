@@ -14,38 +14,38 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # A quick look at what changed, on a cheap Linux machine, so documentation-only changes
-  # don't start a macOS machine.
+  # For now the app is only built for release-prep pull requests (release/… branches) and by
+  # hand; features are built locally and tested before merging, and tags build the release.
   changes:
-    name: Check what changed
+    name: Decide whether to build
     runs-on: ubuntu-latest
     outputs:
-      app: ${{ steps.diff.outputs.app }}
-      android: ${{ steps.diff.outputs.android }}
+      app: ${{ steps.decide.outputs.app }}
+      android: ${{ steps.android.outputs.android }}
     steps:
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
-      - id: diff
+      # The Android app builds on cheap Linux machines, so it's checked on every pull request
+      # that touches it.
+      - id: android
         run: |
-          if [ "${{ github.event_name }}" != "pull_request" ]; then
-            echo "app=true" >> "$GITHUB_OUTPUT"
-          elif git diff --name-only "${{ github.event.pull_request.base.sha }}" HEAD |
-              grep -qE '^(macOS/|\.github/workflows/)'; then
-            echo "app=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "app=false" >> "$GITHUB_OUTPUT"
-          fi
-          if [ "${{ github.event_name }}" != "pull_request" ]; then
-            echo "android=true" >> "$GITHUB_OUTPUT"
-          elif git diff --name-only "${{ github.event.pull_request.base.sha }}" HEAD |
-              grep -qE '^(android/|\.github/workflows/)'; then
+          if [ "${{ github.event_name }}" != "pull_request" ] ||
+             git diff --name-only "${{ github.event.pull_request.base.sha }}" HEAD | grep -qE '^(android/|\.github/workflows/)'; then
             echo "android=true" >> "$GITHUB_OUTPUT"
           else
             echo "android=false" >> "$GITHUB_OUTPUT"
           fi
+      - id: decide
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] ||
+             [[ "${{ github.head_ref }}" == release/* ]]; then
+            echo "app=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "app=false" >> "$GITHUB_OUTPUT"
+          fi
 
-  # Required by branch protection. When skipped (no app changes), GitHub counts it as passed.
+  # Required by branch protection. When skipped, GitHub counts it as passed.
   macos:
     name: macOS build and test
     needs: changes

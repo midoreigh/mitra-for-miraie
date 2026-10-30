@@ -29,9 +29,9 @@ cd macOS/Packages/MitraKit && swift test
 
 ## Pull requests
 
-`main` is protected: changes go in through pull requests, and CI must pass before merging. CI
-builds and tests the app when a pull request changes `macOS/` or the workflows; documentation-only
-changes skip it.
+`main` is protected: changes go in through pull requests. For now CI builds and tests the app
+only for release-prep pull requests (`release/…` branches) and when run by hand from the Actions
+tab, so build and test your change locally before opening a pull request.
 
 1. Fork the repository and create a branch from `main`.
 2. Keep each pull request to one change, and describe what it does and why.
