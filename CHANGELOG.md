@@ -12,10 +12,15 @@ What's new in each release of Mitra for MirAIe. Versions follow
   Quick Settings tile for power and shortcuts when you long-press the app icon. Try it without
   an account from the sign-in screen.
 
-### Fixed
+## [1.2.1] - 2026-10-31
 
-- Updating no longer makes macOS ask again for permission to use your saved MirAIe login. (You
-  may be asked one last time when you update to this version.)
+Fewer interruptions when you update.
+
+### Fixes
+
+- **No more keychain prompts after updates.** Updating used to make macOS ask again, with Touch
+  ID or your password, before Mitra could use your saved MirAIe login. From now on, updates
+  keep that permission. You may be asked one last time when you update to this version.
 
 ## [1.2.0] - 2026-10-31
 
@@ -86,7 +91,8 @@ for the Mac.
 - Desktop and Notification Center widgets and the Control Center toggle are available when you
   build Mitra from source with your own Apple developer account.
 
-[Unreleased]: https://github.com/midoreigh/mitra-for-miraie/compare/v1.2.0...HEAD
+[Unreleased]: https://github.com/midoreigh/mitra-for-miraie/compare/v1.2.1...HEAD
+[1.2.1]: https://github.com/midoreigh/mitra-for-miraie/compare/v1.2.0...v1.2.1
 [1.2.0]: https://github.com/midoreigh/mitra-for-miraie/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/midoreigh/mitra-for-miraie/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/midoreigh/mitra-for-miraie/releases/tag/v1.0.0
