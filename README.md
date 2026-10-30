@@ -35,8 +35,9 @@ from Control Center. Native, written entirely in Swift and SwiftUI.
 - **Widgets** for the desktop and Notification Center, with working buttons, and a power toggle
   for Control Center.
 - **Every AC in the house.** Switch between all the ACs on your MirAIe account.
-- **Preview mode.** Right-click the menu bar icon to try every control without sending
-  anything to the AC.
+- **Try it without an account.** The sign-in screen opens a demo AC with every control
+  working. Signed in, right-click the menu bar icon for Preview Mode, to try controls without
+  sending anything to your AC.
 
 Right-click the menu bar icon for Refresh, Settings, Sign Out and Quit.
 

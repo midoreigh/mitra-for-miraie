@@ -20,9 +20,12 @@ final class ACStore {
     var isPreviewing = false {
         didSet {
             guard oldValue, !isPreviewing else { return }
-            Task { await start() }
+            if isDemo { endDemo() } else { Task { await start() } }
         }
     }
+    /// Showing a made-up AC, so the app can be tried without a MirAIe account. Always in
+    /// preview mode; nothing is sent or saved, and leaving preview ends it.
+    private(set) var isDemo = false
     /// What each AC can do, so the panel only offers what works.
     private(set) var capabilities: [String: ACCapabilities] = [:]
     /// The username of the last sign-in attempt, to refill the form if the panel was closed.
@@ -83,6 +86,33 @@ final class ACStore {
         }
     }
 
+    /// Opens the panel on a made-up AC in preview mode. It's kept only in memory: not saved
+    /// for the widgets, and the selected AC setting isn't touched.
+    func startDemo() {
+        var state = ACState()
+        state.isOn = true
+        state.mode = .cool
+        state.setpoint = 24
+        state.fan = .auto
+        state.roomTemperature = 27.5
+        state.converti = Converti.off
+        state.isOnline = true
+        devices = [Device(id: Self.demoId, name: "Living Room AC", topicBase: "demo")]
+        states = [Self.demoId: state]
+        isDemo = true
+        isPreviewing = true
+        phase = .ready
+    }
+
+    private func endDemo() {
+        isDemo = false
+        devices = []
+        states = [:]
+        phase = .signedOut
+    }
+
+    private static let demoId = "demo"
+
     /// Clears a sign-in error, e.g. once the user starts fixing their details.
     func clearError() {
         if case .failed = phase { phase = .signedOut }
@@ -101,6 +131,7 @@ final class ACStore {
 
     /// Loads the device list and every AC's state, then goes live.
     func start() async {
+        guard !isDemo else { return }
         do {
             devices = try await service.refreshDevices()
             for device in devices {
@@ -158,7 +189,7 @@ final class ACStore {
 
     func setCapabilities(_ value: ACCapabilities, for deviceId: String) {
         capabilities[deviceId] = value
-        SharedStore.shared.setCapabilities(value, for: deviceId)
+        if !isDemo { SharedStore.shared.setCapabilities(value, for: deviceId) }
     }
 
     // MARK: - Live connection

@@ -103,6 +103,12 @@ struct SignInView: View {
                 .disabled(!canSubmit)
             }
             .controlSize(.large)
+
+            Button("Try it without an account") { store.startDemo() }
+                .buttonStyle(.link)
+                .font(.callout)
+                .frame(maxWidth: .infinity)
+                .hoverHint("A made-up AC in preview mode. Nothing is sent anywhere.", edge: .top)
         }
         .padding(20)
         .animation(.snappy, value: errorMessage)

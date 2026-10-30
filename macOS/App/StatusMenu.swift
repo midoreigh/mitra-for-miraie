@@ -26,7 +26,11 @@ final class StatusMenu: NSObject {
 
     private func menu() -> NSMenu {
         let menu = NSMenu()
-        if let store, store.phase == .ready {
+        if let store, store.isDemo {
+            menu.addItem(withTitle: "Previewing a demo AC", action: nil, keyEquivalent: "").isEnabled = false
+            menu.addItem(.separator())
+            menu.addItem(item("Exit Demo", #selector(togglePreview)))
+        } else if let store, store.phase == .ready {
             var status = store.isLive ? "Connected" : "Connecting…"
             if let signal = store.state.wifiSignal { status += " · AC Wi-Fi \(signal) dBm" }
             menu.addItem(withTitle: status, action: nil, keyEquivalent: "").isEnabled = false
@@ -38,7 +42,7 @@ final class StatusMenu: NSObject {
         }
         menu.addItem(item("Settings…", #selector(showSettings), key: ","))
         menu.addItem(.separator())
-        if store?.phase == .ready {
+        if store?.phase == .ready, store?.isDemo == false {
             menu.addItem(item("Sign Out", #selector(signOut)))
         }
         menu.addItem(item("Quit Mitra for MirAIe", #selector(quit), key: "q"))
