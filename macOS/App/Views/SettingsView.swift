@@ -75,6 +75,11 @@ struct SettingsView: View {
             }
         }
         .formStyle(.grouped)
+        // The window grows to fit the form, so there's nothing to scroll: no scroll bar (macOS
+        // otherwise draws one when "Show scroll bars" is Always) and no bounce. A short screen
+        // can still scroll it.
+        .scrollIndicators(.never)
+        .scrollBounceBehavior(.basedOnSize)
         .frame(width: 460)
         .fixedSize(horizontal: false, vertical: true)
     }
