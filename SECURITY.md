@@ -20,4 +20,6 @@ Only the latest release receives fixes.
 - Your password and session token are stored in the macOS Keychain.
 - They're only sent to MirAIe's own servers (`auth.miraie.in`, `app.miraie.in` and
   `mqtt.miraie.in`), over TLS.
-- The app has no analytics or telemetry and talks to no other servers.
+- The app has no analytics or telemetry. Apart from MirAIe, it only contacts GitHub, to check
+  for new releases (`api.github.com`) and download them; you can turn automatic checks off in
+  Settings. Nothing about you or your AC is sent.
