@@ -55,17 +55,20 @@ struct LabeledBar<Bar: View>: View {
     let title: String
     let value: String
     @ViewBuilder let bar: Bar
+    @Environment(\.isEnabled) private var isEnabled
 
     var body: some View {
         HStack(spacing: 10) {
             VStack(alignment: .leading, spacing: 0) {
                 Text(title)
                     .font(.caption)
-                    .foregroundStyle(.secondary)
-                // Swaps at once: a crossfade showed both names for a moment.
+                    .foregroundStyle(isEnabled ? .secondary : .tertiary)
+                // The name swaps at once (a crossfade showed both for a moment), but the label
+                // still moves and fades with the rest of the panel.
                 Text(value)
                     .font(.callout.weight(.semibold))
-                    .transaction { $0.animation = nil }
+                    .foregroundStyle(isEnabled ? .primary : .secondary)
+                    .contentTransition(.identity)
             }
             .lineLimit(1)
             .frame(width: 58, alignment: .leading)

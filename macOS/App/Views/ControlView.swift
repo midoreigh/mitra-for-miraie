@@ -9,8 +9,6 @@ struct ControlView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Across the top of the whole panel, so it's clear nothing below can reach the AC.
-            if !state.isOnline { offlineBanner }
             hero
             VStack(spacing: 12) {
                 Group {
@@ -52,6 +50,13 @@ struct ControlView: View {
                        onStatusLightTap: store.isPreviewing ? { store.togglePreviewOnline() } : nil)
                 .padding(.top, 76)
                 .accessibilityLabel(Text("\(store.selected?.name ?? "AC"): \(state.summary). \(connection.text)"))
+            // Offline, the AC blows no air: the message takes its place under the unit, so nothing
+            // moves and it's clear it's the AC that can't be reached.
+            if !state.isOnline {
+                offlineNotice
+                    .padding(.top, 152)
+                    .transition(.opacity)
+            }
 
             VStack(spacing: 0) {
                 header
@@ -185,16 +190,20 @@ struct ControlView: View {
 
     // MARK: - Controls
 
-    /// A full-width strip at the very top of the panel.
-    private var offlineBanner: some View {
-        Label("\(store.selected?.name ?? "The AC") is offline. Check its power and Wi-Fi.", systemImage: "wifi.slash")
-            .font(.caption.weight(.semibold))
-            .foregroundStyle(.white)
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 9)
-            .padding(.horizontal, 16)
-            .background(Color(red: 0.62, green: 0.33, blue: 0.0))
-            .transition(.move(edge: .top).combined(with: .opacity))
+    private var offlineNotice: some View {
+        VStack(spacing: 3) {
+            Label {
+                Text("\(store.selected?.name ?? "The AC") is offline")
+            } icon: {
+                Image(systemName: "wifi.slash").foregroundStyle(Color(red: 1.0, green: 0.62, blue: 0.25))
+            }
+            .font(.headline)
+            Text("Check its power and Wi-Fi.")
+                .font(.callout)
+                .foregroundStyle(.secondary)
+        }
+        .multilineTextAlignment(.center)
+        .frame(maxWidth: .infinity)
     }
 
     private var modes: some View {
