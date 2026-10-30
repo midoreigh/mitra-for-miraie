@@ -53,9 +53,7 @@ straight away. A light on the drawn unit tells you whether your AC is online.
 Every action also works in Shortcuts, so your AC can switch on before you get home.
 
 <p align="center">
-  <img src="docs/media/panel-cool.webp" width="260" alt="The panel in Cool mode, with blue air">
-  <img src="docs/media/panel-converti.webp" width="260" alt="Choosing a Converti7 cooling level from its menu">
-  <img src="docs/media/panel-heat.webp" width="260" alt="The panel in Heat mode, with warm air">
+  <img src="docs/media/showcase-panel.png" alt="Three views of the panel: Cool mode with every setting one click away, the panel opening from the menu bar in Auto mode, and Heat mode with the AC shown offline">
 </p>
 
 ## Everything you can do
@@ -74,6 +72,10 @@ Every action also works in Shortcuts, so your AC can switch on before you get ho
 Mitra only shows what your AC has: Heat and nanoe X appear when your unit reports them, and you
 can switch features on or off for each AC in Settings. Right-click the menu bar icon for Refresh,
 Preview Mode, Settings, Sign Out and Quit.
+
+<p align="center">
+  <img src="docs/media/showcase-converti-settings.png" width="620" alt="Choosing a Converti7 cooling level, and the Settings window with per-AC feature switches">
+</p>
 
 ## Install
 
