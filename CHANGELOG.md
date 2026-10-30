@@ -7,6 +7,7 @@ What's new in each release of Mitra for MirAIe. Versions follow
 
 ### Changed
 
+- The Display button glows a warm amber when on, like a lit bulb.
 - Switching modes or fan speeds changes the air as it leaves the unit: the new colour, speed
   and rise or fall flow out from the AC and gradually fill the room, while the air already
   blowing carries on until it fades, instead of all the air changing and jumping at once.
