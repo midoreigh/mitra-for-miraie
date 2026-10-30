@@ -5,6 +5,10 @@ What's new in each release of Mitra for MirAIe. Versions follow
 
 ## [Unreleased]
 
+### Changed
+
+- The Display button glows a warm amber when on, like a lit bulb.
+
 ## [1.1.0] - 2026-10-31
 
 Mitra now tells you when there's a new version, and the air in the panel moves more like the real
