@@ -24,6 +24,19 @@ struct SignInView: View {
     /// How a field is doing, which colours its outline and message.
     private enum Validity { case neutral, valid, warning, error }
 
+    /// The panel's hero, smaller: a running AC sweeping both ways, to greet the user.
+    private var hero: some View {
+        ZStack(alignment: .top) {
+            HeroBackground(isOn: true)
+            ACUnitView(state: Self.demoState)
+                .padding(.horizontal, 24)
+                .padding(.top, 26)
+        }
+        .frame(height: 150)
+        .clipShape(UnevenRoundedRectangle(bottomLeadingRadius: 26, bottomTrailingRadius: 26, style: .continuous))
+        .environment(\.colorScheme, .dark)
+    }
+
     /// A running AC sweeping both ways, to greet the user.
     private static let demoState: ACState = {
         var state = ACState()
@@ -39,78 +52,83 @@ struct SignInView: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            ACUnitView(state: Self.demoState)
-                .frame(height: 92)
-                .padding(.horizontal, 24)
-                .mask(LinearGradient(stops: [.init(color: .black, location: 0.6), .init(color: .clear, location: 1)],
-                                     startPoint: .top, endPoint: .bottom))
-
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Welcome to Mitra for MirAIe")
-                    .font(.title2.weight(.semibold))
-                Text("Use the same login as the MirAIe app.")
-                    .font(.callout)
-                    .foregroundStyle(.secondary)
-            }
-
-            VStack(alignment: .leading, spacing: 12) {
-                let user = usernameStatus
-                field("Mobile number or email", .username, validity: user.validity, message: user.message) {
-                    TextField("98765 43210", text: $username)
-                        .textContentType(.username)
-                        .focused($focus, equals: .username)
-                        .onSubmit {
-                            usernameTouched = true
-                            if identifier != nil { focus = .password }
-                        }
+        VStack(spacing: 0) {
+            hero
+            VStack(alignment: .leading, spacing: 20) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Welcome to Mitra for MirAIe")
+                        .font(.title2.weight(.semibold))
+                    Text("Use the same login as the MirAIe app.")
+                        .font(.callout)
+                        .foregroundStyle(.secondary)
                 }
-                let pass = passwordStatus
-                field("Password", .password, validity: pass.validity, message: pass.message) {
-                    SecureField("MirAIe password", text: $password)
-                        .textContentType(.password)
-                        .focused($focus, equals: .password)
-                        .onSubmit(submit)
-                }
-            }
-            .modifier(Shake(animatableData: CGFloat(shakes)))
 
-            if let errorMessage {
-                ErrorBanner(message: errorMessage)
-                    .transition(.move(edge: .top).combined(with: .opacity))
-            }
-
-            Label("Your password stays in your Mac's Keychain and is only sent to MirAIe.",
-                  systemImage: "lock.fill")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .fixedSize(horizontal: false, vertical: true)
-
-            HStack {
-                Button("Quit") { NSApp.terminate(nil) }
-                    .buttonStyle(.glass)
-                Spacer()
-                Button(action: submit) {
-                    if isWorking {
-                        ProgressView().controlSize(.small).frame(width: 64)
-                    } else {
-                        Text("Sign In").frame(width: 64)
+                VStack(alignment: .leading, spacing: 14) {
+                    let user = usernameStatus
+                    field("Mobile number or email", .username, validity: user.validity, message: user.message) {
+                        TextField("98765 43210", text: $username)
+                            .textContentType(.username)
+                            .focused($focus, equals: .username)
+                            .onSubmit {
+                                usernameTouched = true
+                                if identifier != nil { focus = .password }
+                            }
+                    }
+                    let pass = passwordStatus
+                    field("Password", .password, validity: pass.validity, message: pass.message) {
+                        SecureField("MirAIe password", text: $password)
+                            .textContentType(.password)
+                            .focused($focus, equals: .password)
+                            .onSubmit(submit)
                     }
                 }
-                .buttonStyle(.glassProminent)
-                .tint(ACMode.cool.tint)
-                .keyboardShortcut(.defaultAction)
-                .disabled(!canSubmit)
-            }
-            .controlSize(.large)
+                .modifier(Shake(animatableData: CGFloat(shakes)))
 
-            Button("Try it without an account") { store.startDemo() }
+                if let errorMessage {
+                    ErrorBanner(message: errorMessage)
+                        .transition(.move(edge: .top).combined(with: .opacity))
+                }
+
+                VStack(spacing: 10) {
+                    Button(action: submit) {
+                        Group {
+                            if isWorking {
+                                ProgressView().controlSize(.small)
+                            } else {
+                                Text("Sign In")
+                            }
+                        }
+                        .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.glassProminent)
+                    .tint(ACMode.cool.controlTint)
+                    .controlSize(.large)
+                    .keyboardShortcut(.defaultAction)
+                    .disabled(!canSubmit)
+                    // A disabled prominent button almost vanishes; keep its shape visible.
+                    .opacity(canSubmit || isWorking ? 1 : 0.5)
+
+                    Label("Your password stays in your Mac's Keychain and is only sent to MirAIe.",
+                          systemImage: "lock.fill")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .frame(maxWidth: .infinity)
+                }
+
+                HStack {
+                    Button("Try it without an account") { store.startDemo() }
+                        .hoverHint("A made-up AC in preview mode. Nothing is sent anywhere.", edge: .top)
+                    Spacer()
+                    Button("Quit") { NSApp.terminate(nil) }
+                        .foregroundStyle(.secondary)
+                }
                 .buttonStyle(.link)
                 .font(.callout)
-                .frame(maxWidth: .infinity)
-                .hoverHint("A made-up AC in preview mode. Nothing is sent anywhere.", edge: .top)
+                .focusEffectDisabled()
+            }
+            .padding(20)
         }
-        .padding(20)
         .animation(.snappy, value: errorMessage)
         .onAppear {
             if username.isEmpty { username = store.lastUsername }
