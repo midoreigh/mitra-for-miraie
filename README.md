@@ -77,6 +77,19 @@ Preview Mode, Settings, Sign Out and Quit.
 
 ## Install
 
+> [!IMPORTANT]
+> **macOS will ask you to confirm Mitra: when you first open it, and again after each update.**
+> Mitra is free and isn't signed with a paid Apple Developer ID, so macOS can't verify it. Both
+> prompts are expected and safe to allow; all of the source is here to check.
+>
+> - **Open Anyway.** macOS blocks each newly downloaded version until you click **Open Anyway** in
+>   **System Settings ▸ Privacy & Security** (step 2 below).
+> - **Your Mac's password or Touch ID, usually twice.** Mitra keeps your MirAIe sign-in and session
+>   in your Mac's Keychain, and macOS only lets the app that saved an item read it. Without a
+>   Developer ID, macOS can't tell that a new version is the same app, so after each update it
+>   asks once for each of the two saved items. Choose **Always Allow**; it won't ask again until the
+>   next update.
+
 1. Download **Mitra-for-MirAIe-&lt;version&gt;.dmg** from the
    [latest release](https://github.com/midoreigh/mitra-for-miraie/releases/latest), open it, and
    drag **Mitra for MirAIe** into **Applications**.
@@ -94,13 +107,11 @@ Requires macOS 26 or later, on Apple silicon or Intel.
 **Updating:** Mitra checks for new versions once a day (or choose **Check for Updates…** from the
 right-click menu). When one is out, click **Update** in the panel: Mitra downloads it and opens
 the installer, and you drag the app into Applications to replace the old one. When you first open
-the new version, macOS may ask twice:
+the new version, macOS asks you to confirm it, as described above:
 
-- **Open Anyway:** macOS treats each new version as a new download, so click **Open Anyway** in
-  **System Settings ▸ Privacy & Security** again (step 2 above).
-- **Your Mac's login password or Touch ID:** macOS checks that the new version may use the
-  MirAIe sign-in you saved, once for each of Mitra's two saved items. Choose **Always Allow**.
-  From version 1.2.1 on, updates keep this permission, so you should only be asked once.
+- **Open Anyway** in **System Settings ▸ Privacy & Security** (step 2).
+- **Your Mac's login password or Touch ID**, usually twice, so the new version can use your saved
+  MirAIe sign-in. Choose **Always Allow** each time. This happens after every update.
 
 ## FAQ
 
@@ -117,12 +128,14 @@ Apple only vouches for apps from developers in its paid developer program. Mitra
 open-source app, so macOS asks you to confirm the first time you open it. All of the source is
 here for anyone to check.
 
-**Why does macOS ask for my password after updating?**
-Mitra keeps your MirAIe sign-in in your Mac's Keychain, and macOS asks before a new version of an
-app can read what an earlier one saved. Enter your Mac's login password (or use Touch ID) and
-choose **Always Allow**; there may be two prompts, one for the sign-in and one for the session.
-Since version 1.2.1 every release is signed the same way, so after allowing it once, updates
-shouldn't ask again.
+**Why does macOS ask for my password after every update, sometimes twice?**
+Mitra keeps your MirAIe sign-in and session in your Mac's Keychain, where macOS only lets the app
+that saved an item read it. Apps signed with a paid Apple Developer ID carry a developer identity
+that stays the same from version to version; Mitra doesn't have one, so macOS treats each new
+version as a different app and asks before it can read what the old one saved, once per item:
+one prompt for the sign-in and one for the session. Enter your Mac's login password (or use Touch
+ID) and choose **Always Allow**. It won't ask again until the next update. Your sign-in never
+leaves your Mac except to sign in to MirAIe.
 
 **Are there widgets?**
 Yes, for the desktop and Notification Center, plus a Control Center toggle. They need an Apple

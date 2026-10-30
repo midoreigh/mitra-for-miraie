@@ -17,8 +17,9 @@ jobs:
       - name: Select Xcode 26
         run: sudo xcode-select -s "$(ls -d /Applications/Xcode_26*.app | sort -V | tail -1)"
 
-      # The self-signed certificate that gives every release the same identity, so macOS keeps
-      # trusting it with the user's saved login across updates. Kept in the repository secrets.
+      # The self-signed certificate that gives every release the same designated requirement.
+      # (macOS still asks for the keychain password after updates: without a Team ID it ties
+      # keychain items to each build.) Kept in the repository secrets.
       - name: Import the signing certificate
         env:
           CERTIFICATE: ${{ secrets.MACOS_SIGNING_CERTIFICATE }}

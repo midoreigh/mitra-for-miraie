@@ -28,13 +28,15 @@ Clearer when your AC can't be reached, and smoother updates.
 
 ## [1.2.1] - 2026-10-31
 
-Fewer interruptions when you update.
+A behind-the-scenes change to how releases are signed.
 
-### Fixes
+### Changes
 
-- **No more keychain prompts after updates.** Updating used to make macOS ask again, with Touch
-  ID or your password, before Mitra could use your saved MirAIe login. From now on, updates
-  keep that permission. You may be asked one last time when you update to this version.
+- **Releases are signed with a permanent certificate.** This was meant to stop macOS asking for
+  your password after updates, but it doesn't: without a paid Apple Developer ID, macOS still
+  asks after each update, usually twice, before a new version can use your saved MirAIe sign-in.
+  Choose **Always Allow**. The [README](https://github.com/midoreigh/mitra-for-miraie#faq)
+  explains why.
 
 ## [1.2.0] - 2026-10-31
 
