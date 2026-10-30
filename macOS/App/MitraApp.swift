@@ -37,6 +37,7 @@ struct MenuBarLabel: View {
         }
         .onAppear {
             StatusMenu.shared.install(store: store) { openSettings() }
+            UpdateChecker.shared.start()
         }
     }
 }

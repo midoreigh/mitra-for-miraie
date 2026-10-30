@@ -19,8 +19,10 @@ struct ControlView: View {
                 }
                 .disabled(!store.canControl)
                 .opacity(state.isOn ? 1 : 0.55)
+                UpdateBanner(updates: UpdateChecker.shared)
             }
             .padding(16)
+            .animation(.snappy, value: UpdateChecker.shared.state)
         }
     }
 

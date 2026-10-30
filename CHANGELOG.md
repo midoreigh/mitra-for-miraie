@@ -8,11 +8,23 @@ What's new in each release of Mitra for MirAIe. Versions follow
 ### Changed
 
 - The Display button glows a warm amber when on, like a lit bulb.
-- Switching modes or fan speeds changes the air as it leaves the unit: the new colour, speed
-  and rise or fall flow out from the AC and gradually fill the room, while the air already
-  blowing carries on until it fades, instead of all the air changing and jumping at once.
 
-### Fixed
+## [1.1.0] - 2026-10-31
+
+Mitra now tells you when there's a new version, and the air in the panel moves more like the real
+thing.
+
+### What's new
+
+- **Updates, built in.** Mitra checks for new versions once a day. When one is out, a banner in
+  the panel offers it: one click downloads it and opens the installer, and you drag the app into
+  Applications. You can also choose **Check for Updates…** from the right-click menu, see your
+  version in Settings, or turn automatic checks off there.
+- **Air that changes the way real air does.** Switch mode or fan speed and the change starts at
+  the AC: new air comes out in the new colour and at the new speed, and gradually fills the room
+  while the air already blowing carries on. No more jumps when you switch modes.
+
+### Fixes
 
 - The Settings window no longer shows a scroll bar when everything already fits.
 
@@ -57,5 +69,6 @@ for the Mac.
 - Desktop and Notification Center widgets and the Control Center toggle are available when you
   build Mitra from source with your own Apple developer account.
 
-[Unreleased]: https://github.com/midoreigh/mitra-for-miraie/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/midoreigh/mitra-for-miraie/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/midoreigh/mitra-for-miraie/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/midoreigh/mitra-for-miraie/releases/tag/v1.0.0
