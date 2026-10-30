@@ -127,9 +127,12 @@ struct ControlView: View {
                         .foregroundStyle(.secondary)
                         .contentTransition(.numericText())
                         .animation(.smooth, value: room)
-                        .hoverHint("Room temperature, measured by the AC", edge: .trailing)
+                        // Above, not beside: to the right it would run into − and +.
+                        .hoverHint("Room temperature, measured by the AC", edge: .top)
                 }
             }
+            // Its hints draw over the − / + buttons, not under them.
+            .zIndex(1)
             Spacer()
             HStack(spacing: 8) {
                 RoundButton(symbol: "minus") { step(-1) }
