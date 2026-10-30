@@ -191,9 +191,11 @@ struct ControlView: View {
     // MARK: - Controls
 
     private var offlineNotice: some View {
-        // The second line starts under the first line's text, not under the icon, so the block
-        // reads as one piece; the block as a whole is centred.
-        Label {
+        // The icon sits beside both lines, centred on them; the block as a whole is centred.
+        HStack(alignment: .center, spacing: 10) {
+            Image(systemName: "wifi.slash")
+                .font(.title2.weight(.semibold))
+                .foregroundStyle(Color(red: 1.0, green: 0.62, blue: 0.25))
             VStack(alignment: .leading, spacing: 3) {
                 Text("\(store.selected?.name ?? "The AC") is offline")
                     .font(.headline)
@@ -201,10 +203,6 @@ struct ControlView: View {
                     .font(.callout)
                     .foregroundStyle(.secondary)
             }
-        } icon: {
-            Image(systemName: "wifi.slash")
-                .font(.headline)
-                .foregroundStyle(Color(red: 1.0, green: 0.62, blue: 0.25))
         }
         .frame(maxWidth: .infinity)
     }
