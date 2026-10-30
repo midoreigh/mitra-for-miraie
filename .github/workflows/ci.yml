@@ -21,21 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       app: ${{ steps.decide.outputs.app }}
-      android: ${{ steps.android.outputs.android }}
     steps:
-      - uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
-      # The Android app builds on cheap Linux machines, so it's checked on every pull request
-      # that touches it.
-      - id: android
-        run: |
-          if [ "${{ github.event_name }}" != "pull_request" ] ||
-             git diff --name-only "${{ github.event.pull_request.base.sha }}" HEAD | grep -qE '^(android/|\.github/workflows/)'; then
-            echo "android=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "android=false" >> "$GITHUB_OUTPUT"
-          fi
       - id: decide
         run: |
           if [ "${{ github.event_name }}" = "workflow_dispatch" ] ||
@@ -71,7 +57,7 @@ jobs:
   android:
     name: Android build and test
     needs: changes
-    if: needs.changes.outputs.android == 'true'
+    if: needs.changes.outputs.app == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
