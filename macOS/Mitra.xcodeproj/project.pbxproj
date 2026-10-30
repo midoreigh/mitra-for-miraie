@@ -328,7 +328,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.1.0;
+				MARKETING_VERSION = 1.2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.midoreigh.mitra;
 				PRODUCT_NAME = "Mitra for MirAIe";
 			};
@@ -354,7 +354,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.1.0;
+				MARKETING_VERSION = 1.2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.midoreigh.mitra;
 				PRODUCT_NAME = "Mitra for MirAIe";
 			};
@@ -376,7 +376,7 @@
 					"@executable_path/../Frameworks",
 					"@executable_path/../../../../Frameworks",
 				);
-				MARKETING_VERSION = 1.1.0;
+				MARKETING_VERSION = 1.2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.midoreigh.mitra.widgets;
 				PRODUCT_NAME = MitraWidgets;
 				SKIP_INSTALL = YES;
@@ -399,7 +399,7 @@
 					"@executable_path/../Frameworks",
 					"@executable_path/../../../../Frameworks",
 				);
-				MARKETING_VERSION = 1.1.0;
+				MARKETING_VERSION = 1.2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.midoreigh.mitra.widgets;
 				PRODUCT_NAME = MitraWidgets;
 				SKIP_INSTALL = YES;
