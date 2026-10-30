@@ -15,6 +15,7 @@ struct ACEntry: TimelineEntry {
     let date: Date
     let device: ACEntity?
     let state: ACState
+    var capabilities = ACCapabilities()
     /// Why there's nothing to show, e.g. not signed in.
     var problem: String?
 
@@ -45,7 +46,8 @@ struct ACTimelineProvider: AppIntentTimelineProvider {
             let device = try await service.device(id: configuration.device?.id)
             var state = SharedStore.shared.state(for: device.id) ?? ACState()
             if refresh, let fresh = try? await service.currentState(of: device, maxAge: 60) { state = fresh }
-            return ACEntry(date: .now, device: ACEntity(device), state: state)
+            return ACEntry(date: .now, device: ACEntity(device), state: state,
+                           capabilities: SharedStore.shared.capabilities(for: device.id))
         } catch {
             return ACEntry(date: .now, device: nil, state: ACState(), problem: error.localizedDescription)
         }
@@ -66,12 +68,15 @@ struct ACWidget: Widget {
 
 // MARK: - Views
 
+/// The panel in miniature: the graphite night sky, the drawn unit with its light, the set
+/// temperature large with the room temperature under it, and the same round buttons and bars.
+/// Widgets can't run continuous animations, so the air is shown mid-stream; changes animate
+/// when a new entry arrives, and tapped controls show as pending until the AC confirms.
 struct ACWidgetView: View {
     @Environment(\.widgetFamily) private var family
     let entry: ACEntry
 
     private var state: ACState { entry.state }
-    private var tint: Color { state.mode.tint }
 
     var body: some View {
         Group {
@@ -90,11 +95,7 @@ struct ACWidgetView: View {
             }
         }
         .containerBackground(for: .widget) {
-            ZStack {
-                Color(white: 0.08)
-                LinearGradient(colors: [tint.opacity(state.isOn ? 0.55 : 0.12), .clear],
-                               startPoint: .top, endPoint: .bottom)
-            }
+            GraphiteBackdrop(isOn: state.isOn, animated: false)
         }
         .environment(\.colorScheme, .dark)
     }
@@ -102,32 +103,28 @@ struct ACWidgetView: View {
     // MARK: Families
 
     private var small: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            HStack(alignment: .top) {
-                title
-                Spacer()
-                powerButton(size: 30)
-            }
+        VStack(alignment: .leading, spacing: 0) {
+            header(power: 26)
+            unit(height: 44)
+                .padding(.top, 10)
             Spacer(minLength: 0)
-            setpoint(size: 40)
-            status
+            setpoint(size: 36)
+            room
         }
     }
 
     private var medium: some View {
-        HStack(spacing: 12) {
-            VStack(alignment: .leading, spacing: 4) {
-                title
+        HStack(spacing: 14) {
+            VStack(alignment: .leading, spacing: 0) {
+                header(power: 28)
                 Spacer(minLength: 0)
-                setpoint(size: 44)
-                status
+                setpoint(size: 46)
+                room
             }
-            VStack(spacing: 8) {
-                ACUnitView(state: state, animated: false)
-                    .frame(height: 70)
-                HStack(spacing: 8) {
+            VStack(spacing: 12) {
+                unit(height: 70)
+                HStack(spacing: 10) {
                     stepButton(.cooler)
-                    powerButton(size: 34)
                     stepButton(.warmer)
                 }
             }
@@ -136,94 +133,150 @@ struct ACWidgetView: View {
     }
 
     private var large: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack(alignment: .top) {
-                title
-                Spacer()
-                powerButton(size: 36)
-            }
-            ACUnitView(state: state, animated: false)
-                .frame(height: 120)
-            HStack(alignment: .center) {
-                VStack(alignment: .leading, spacing: 2) {
+        VStack(alignment: .leading, spacing: 12) {
+            header(power: 30)
+            unit(height: 112)
+            HStack(alignment: .bottom) {
+                VStack(alignment: .leading, spacing: 0) {
                     setpoint(size: 50)
-                    status
+                    room
                 }
                 Spacer()
                 stepButton(.cooler)
                 stepButton(.warmer)
             }
-            HStack(spacing: 6) {
-                ForEach(ACMode.allCases) { mode in
-                    Button(intent: SetACModeIntent(mode: ACModeOption(rawValue: mode.rawValue)!, device: entry.device)) {
-                        VStack(spacing: 3) {
-                            Image(systemName: mode.symbol)
-                            Text(mode.title).font(.caption2)
-                        }
-                        .frame(maxWidth: .infinity, minHeight: 40)
-                        .background(mode == state.mode && state.isOn ? mode.tint.opacity(0.85) : .white.opacity(0.1),
-                                    in: .rect(cornerRadius: 10))
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
+            fanRow
+            modeRow
         }
     }
 
     // MARK: Pieces
 
-    private var title: some View {
-        VStack(alignment: .leading, spacing: 1) {
+    private func header(power size: CGFloat) -> some View {
+        HStack(spacing: 8) {
+            powerButton(size: size)
             Text(entry.device?.name ?? "Air Conditioner")
                 .font(.headline)
                 .lineLimit(1)
-            if let room = state.roomTemperatureText {
-                Label("Room \(room)", systemImage: "thermometer.medium")
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
-            }
         }
+    }
+
+    private func unit(height: CGFloat) -> some View {
+        ACUnitView(state: state, animated: false, statusLight: state.isOnline ? .green : .red)
+            .frame(height: height)
     }
 
     private func setpoint(size: CGFloat) -> some View {
-        HStack(alignment: .firstTextBaseline, spacing: 1) {
-            Text(ACState.format(state.setpoint).dropLast())
-                .font(.system(size: size, weight: .light, design: .rounded))
-                .contentTransition(.numericText())
-            Text("°C").font(.caption.weight(.semibold)).foregroundStyle(tint)
+        Group {
+            if state.mode.usesSetpoint {
+                Text("\(state.setpoint, format: .number.precision(.fractionLength(state.setpoint == state.setpoint.rounded() ? 0 : 1)))°")
+            } else {
+                Text("Fan")
+            }
         }
-        .opacity(state.isOn ? 1 : 0.5)
-        .widgetAccentable()
+        .font(.system(size: size, weight: .ultraLight, design: .rounded))
+        .lineLimit(1)
+        .minimumScaleFactor(0.6)
+        .contentTransition(.numericText(value: state.setpoint))
+        .opacity(state.isOn ? 1 : 0.6)
+        .invalidatableContent()
     }
 
-    private var status: some View {
-        Label(state.summary, systemImage: state.isOn ? state.mode.symbol : "power")
-            .font(.caption2.weight(.medium))
-            .foregroundStyle(state.isOn ? tint : .secondary)
-            .lineLimit(1)
+    @ViewBuilder
+    private var room: some View {
+        if let room = state.roomTemperatureText {
+            Label("Room \(room)", systemImage: "thermometer.medium")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+                .contentTransition(.numericText())
+        }
     }
 
+    /// Solid white while the AC runs, like the panel's power button.
     private func powerButton(size: CGFloat) -> some View {
         Button(intent: ToggleACPowerIntent(device: entry.device)) {
             Image(systemName: "power")
                 .font(.system(size: size * 0.42, weight: .bold))
                 .frame(width: size, height: size)
-                .background(state.isOn ? tint : .white.opacity(0.15), in: .circle)
-                .foregroundStyle(.white)
+                .foregroundStyle(state.isOn ? Color.black : .white)
+                .background(Circle().fill(state.isOn ? Color.white : .white.opacity(0.15)))
+                .invalidatableContent()
         }
         .buttonStyle(.plain)
-        .widgetAccentable()
     }
 
     private func stepButton(_ direction: TemperatureDirection) -> some View {
         Button(intent: AdjustACTemperatureIntent(direction: direction, device: entry.device)) {
             Image(systemName: direction == .cooler ? "minus" : "plus")
                 .font(.system(size: 13, weight: .bold))
-                .frame(width: 30, height: 30)
-                .background(.white.opacity(0.15), in: .circle)
+                .frame(width: 32, height: 32)
+                .background(Circle().fill(.white.opacity(0.15)))
         }
         .buttonStyle(.plain)
         .disabled(!state.mode.usesSetpoint)
+    }
+
+    private var fanRow: some View {
+        WidgetBar(title: "Fan", value: state.fan.rawValue.capitalized) {
+            ForEach(FanSpeed.allCases) { speed in
+                let selected = speed == state.fan
+                Button(intent: SetACFanSpeedIntent(speed: FanSpeedOption(rawValue: speed.rawValue)!, device: entry.device)) {
+                    WidgetSegment(symbol: speed.symbol, isSelected: selected, fill: .white, selectedIcon: .black)
+                }
+                .buttonStyle(.plain)
+            }
+        }
+    }
+
+    private var modeRow: some View {
+        WidgetBar(title: "Mode", value: state.mode.title) {
+            ForEach(entry.capabilities.modes) { mode in
+                let selected = mode == state.mode
+                Button(intent: SetACModeIntent(mode: ACModeOption(rawValue: mode.rawValue)!, device: entry.device)) {
+                    WidgetSegment(symbol: mode.symbol, isSelected: selected, fill: mode.controlTint, selectedIcon: .white)
+                }
+                .buttonStyle(.plain)
+            }
+        }
+    }
+}
+
+/// A row of options with its name and current value on the left, as in the panel.
+private struct WidgetBar<Segments: View>: View {
+    let title: String
+    let value: String
+    @ViewBuilder let segments: Segments
+
+    var body: some View {
+        HStack(spacing: 10) {
+            VStack(alignment: .leading, spacing: 0) {
+                Text(title).font(.caption2).foregroundStyle(.secondary)
+                Text(value).font(.caption.weight(.semibold)).invalidatableContent()
+            }
+            .lineLimit(1)
+            .frame(width: 52, alignment: .leading)
+            HStack(spacing: 2) { segments }
+                .padding(3)
+                .background(Capsule().fill(.white.opacity(0.08)))
+        }
+    }
+}
+
+private struct WidgetSegment: View {
+    let symbol: String
+    let isSelected: Bool
+    let fill: Color
+    let selectedIcon: Color
+
+    var body: some View {
+        Image(systemName: symbol)
+            .font(.system(size: 13, weight: .semibold))
+            .frame(maxWidth: .infinity, minHeight: 28)
+            .foregroundStyle(isSelected ? selectedIcon : .secondary)
+            .background { if isSelected { Capsule().fill(fill.gradient) } }
+            .contentShape(.capsule)
+            .invalidatableContent()
     }
 }
 

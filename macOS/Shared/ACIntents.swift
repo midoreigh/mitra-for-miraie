@@ -167,6 +167,13 @@ struct SetACFanSpeedIntent: AppIntent {
     @Parameter(title: "Fan Speed") var speed: FanSpeedOption
     @Parameter(title: "Air Conditioner") var device: ACEntity?
 
+    init() {}
+
+    init(speed: FanSpeedOption, device: ACEntity?) {
+        self.speed = speed
+        self.device = device
+    }
+
     static var parameterSummary: some ParameterSummary {
         Summary("Set \(\.$device) fan to \(\.$speed)")
     }
