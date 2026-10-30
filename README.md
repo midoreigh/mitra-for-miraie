@@ -80,9 +80,12 @@ Preview Mode, Settings, Sign Out and Quit.
 1. Download **Mitra-for-MirAIe-&lt;version&gt;.dmg** from the
    [latest release](https://github.com/midoreigh/mitra-for-miraie/releases/latest), open it, and
    drag **Mitra for MirAIe** into **Applications**.
-2. Open it from Applications. The first time, macOS says it can't verify the app (see the
-   [FAQ](#faq)). Click **Done**, then go to **System Settings ▸ Privacy & Security**, scroll down
-   and click **Open Anyway**. You only do this once.
+2. Open it from Applications. macOS says it can't verify the app (see the [FAQ](#faq)), so let
+   it through:
+   1. Click **Done** on the warning.
+   2. Open **System Settings ▸ Privacy & Security** and scroll down to **Security**.
+   3. Next to "Mitra for MirAIe was blocked", click **Open Anyway**, then confirm with Touch ID or
+      your password.
 3. Click the AC icon in the menu bar and sign in with the mobile number or email you use in the
    MirAIe app, or choose **Try it without an account** to look around first.
 
@@ -90,7 +93,9 @@ Requires macOS 26 or later, on Apple silicon or Intel.
 
 **Updating:** Mitra checks for new versions once a day (or choose **Check for Updates…** from the
 right-click menu). When one is out, click **Update** in the panel: Mitra downloads it and opens
-the installer, and you drag the app into Applications to replace the old one.
+the installer, and you drag the app into Applications to replace the old one. macOS treats each
+new version as a new download, so you'll need to click **Open Anyway** again (step 2 above) the
+first time you open it.
 
 ## FAQ
 
