@@ -1,0 +1,6 @@
+// Code signing. Widgets and the shared Keychain/App Group need a real team: add your Apple ID
+// in Xcode ▸ Settings ▸ Accounts (a free Personal Team works), then put its Team ID in
+// Config/Signing.local.xcconfig (git-ignored) as:  DEVELOPMENT_TEAM = ABCDE12345
+DEVELOPMENT_TEAM =
+CODE_SIGN_STYLE = Automatic
+#include? "Signing.local.xcconfig"
