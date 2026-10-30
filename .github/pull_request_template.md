@@ -9,5 +9,5 @@
 ## Checklist
 
 - [ ] CI passes
-- [ ] `CHANGELOG.md` updated under **Unreleased** if behaviour changes
+- [ ] `CHANGELOG.md` updated under **Unreleased** for changes users will notice, written for users
 - [ ] Screenshots included for visible changes

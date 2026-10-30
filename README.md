@@ -1,31 +1,111 @@
-# Mitra for MirAIe
+<p align="center">
+  <img src="docs/media/icon.png" width="128" height="128" alt="Mitra for MirAIe icon">
+</p>
 
-[![CI](https://github.com/midoreigh/mitra-for-miraie/actions/workflows/ci.yml/badge.svg)](https://github.com/midoreigh/mitra-for-miraie/actions/workflows/ci.yml)
-[![Latest release](https://img.shields.io/github/v/release/midoreigh/mitra-for-miraie)](https://github.com/midoreigh/mitra-for-miraie/releases/latest)
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+<h1 align="center">Mitra for MirAIe</h1>
 
-**The most beautiful and feature-rich MirAIe controller for the Mac.**
+<p align="center">
+  <strong>Your Panasonic AC, right in your Mac's menu bar.</strong><br>
+  Set the temperature, aim the air and switch modes in a click, and watch the air flow while you do it.
+</p>
 
-Control your Panasonic MirAIe air conditioners from the menu bar, with Siri, from widgets and
-from Control Center. Native, written entirely in Swift and SwiftUI.
+<p align="center">
+  <a href="https://github.com/midoreigh/mitra-for-miraie/releases/latest"><strong>Download for Mac</strong></a>
+  ·
+  <a href="#install">Install guide</a>
+  ·
+  <a href="#faq">FAQ</a>
+</p>
 
-<!-- demo video -->
+<p align="center">
+  <a href="https://github.com/midoreigh/mitra-for-miraie/releases/latest"><img src="https://img.shields.io/github/v/release/midoreigh/mitra-for-miraie" alt="Latest release"></a>
+  <a href="https://github.com/midoreigh/mitra-for-miraie/actions/workflows/ci.yml"><img src="https://github.com/midoreigh/mitra-for-miraie/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="License: MIT"></a>
+  <img src="https://img.shields.io/badge/macOS-26%2B-black" alt="macOS 26 or later">
+</p>
+
+<p align="center">
+  <img src="docs/media/demo.gif" width="420" alt="Opening Mitra from the menu bar, then changing fan speed, mode and temperature">
+</p>
+
+## Why you'll like it
+
+**It's always one click away.** No phone to find, no app to open, no remote lost down the side of
+the sofa. Click the icon in the menu bar and your AC is right there, with the set temperature
+beside the icon at a glance.
+
+**You can see what your AC is doing.** The panel draws your unit blowing air the way it really
+does: the flap tilts, the air sweeps up and down and side to side at the unit's own pace, takes
+the mode's colour, and drifts on Quiet or rushes on High.
+
+**Everything the MirAIe app does, faster.** Temperature, mode, fan speed, both louvers, Eco,
+Powerful, Converti7 and more, each a single click away, with your AC answering in a second or two.
+
+**It stays in sync.** Change something with the remote or the MirAIe app and Mitra shows it
+straight away. A light on the drawn unit tells you whether your AC is online.
+
+**Just ask Siri.** "Turn on the AC in Mitra for MirAIe." "Make it cooler with Mitra for MirAIe."
+Every action also works in Shortcuts, so your AC can switch on before you get home.
+
+<p align="center">
+  <img src="docs/media/panel-auto.webp" width="360" alt="The panel in Auto mode, with purple air">
+  &nbsp;
+  <img src="docs/media/panel-heat.webp" width="360" alt="The panel in Heat mode, with warm air and Eco on">
+</p>
+
+## Everything you can do
+
+| | |
+|---|---|
+| **Power and temperature** | Turn on and off, and set 16 to 30 °C with − and +. See the room temperature your AC measures. |
+| **Modes** | Auto, Cool, Dry and Fan, plus Heat on units that have it. |
+| **Fan speed** | Auto, Quiet, Low, Medium and High, named as in the MirAIe app. |
+| **Airflow** | Up/down and left/right: swing, or any of five positions on each. |
+| **Features** | Eco, Powerful, Converti7 cooling levels, nanoe X on units that have it, and the display light. |
+| **Every AC** | Switch between all the ACs on your MirAIe account. |
+| **Siri and Shortcuts** | Power, temperature, mode, fan speed, airflow and status. |
+| **Try it first** | A demo AC to play with before signing in, and a Preview Mode that tries controls without touching your AC. |
+
+Mitra only shows what your AC has: Heat and nanoe X appear when your unit reports them, and you
+can switch features on or off for each AC in Settings. Right-click the menu bar icon for Refresh,
+Preview Mode, Settings, Sign Out and Quit.
 
 ## Install
 
-1. Download the latest **Mitra-for-MirAIe-<version>.dmg** from
-   [Releases](https://github.com/midoreigh/mitra-for-miraie/releases/latest), open it, and drag
-   **Mitra for MirAIe** into **Applications**.
-2. Open it from Applications. The first time, macOS says it can't verify the app, because it
-   isn't signed with a paid Apple Developer ID. Click **Done**, then go to **System Settings ▸
-   Privacy & Security**, scroll down and click **Open Anyway**. You only need to do this once.
-3. Click the AC icon in the menu bar and sign in with your MirAIe mobile number or email, or
-   choose **Try it without an account** to look around first.
+1. Download **Mitra-for-MirAIe-&lt;version&gt;.dmg** from the
+   [latest release](https://github.com/midoreigh/mitra-for-miraie/releases/latest), open it, and
+   drag **Mitra for MirAIe** into **Applications**.
+2. Open it from Applications. The first time, macOS says it can't verify the app (see the
+   [FAQ](#faq)). Click **Done**, then go to **System Settings ▸ Privacy & Security**, scroll down
+   and click **Open Anyway**. You only do this once.
+3. Click the AC icon in the menu bar and sign in with the mobile number or email you use in the
+   MirAIe app, or choose **Try it without an account** to look around first.
 
-Requires macOS 26 or later, on Apple silicon or Intel. To update, download the new DMG and
-replace the app. Downloaded builds don't include the widgets and Control Center toggle (they
-need a paid Apple signature to share your sign-in); [build from source](macOS/README.md) with
-your own Apple developer team to get them.
+Requires macOS 26 or later, on Apple silicon or Intel. To update, download the new version and
+replace the app in Applications.
+
+## FAQ
+
+**Which air conditioners does it work with?**
+Panasonic ACs that you control with the MirAIe app.
+
+**Is my password safe?**
+You sign in with your MirAIe account. Your password is kept in your Mac's Keychain and is only
+ever sent to MirAIe's own servers. Mitra has no analytics and talks to no other servers.
+
+**Why does macOS say it can't verify the app?**
+Apple only vouches for apps from developers in its paid developer program. Mitra is a free,
+open-source app, so macOS asks you to confirm the first time you open it. All of the source is
+here for anyone to check.
+
+**Are there widgets?**
+Yes, for the desktop and Notification Center, plus a Control Center toggle. They need an Apple
+developer signature to share your sign-in with the app, so they're included when you
+[build Mitra from source](macOS/README.md) with your own (free) Apple developer account.
+
+**Is this an official Panasonic app?**
+No. Mitra for MirAIe is an independent, unofficial app, not affiliated with or endorsed by
+Panasonic. MirAIe is a trademark of Panasonic.
 
 ## Platforms
 
@@ -35,50 +115,12 @@ your own Apple developer team to get them.
 | iOS | Planned | |
 | Android | Planned | |
 
-## The Mac app
-
-- **A living AC.** The menu bar panel shows your unit blowing air that follows its louvers:
-  the flap tilts and the air sweeps up and down and left and right, at the pace of the real
-  unit. The air takes the mode's colour and moves at the fan's speed, from a slow drift on
-  Quiet to a rush on High.
-- **Every control.** Power, set temperature, mode, fan speed (Auto, Quiet, Low, Medium, High),
-  up/down and left/right airflow with swing, Eco, Powerful, Converti7 cooling levels, nanoe X
-  and the display light.
-- **Always in sync.** Changes made with the remote or the MirAIe app appear within a second or
-  two. The light on the drawn unit shows whether the AC is online.
-- **Room temperature** as reported by the AC, alongside the set temperature.
-- **Only what your AC has.** Heating and nanoe X appear only when your unit reports them, and
-  can be switched on or off per AC in Settings.
-- **Siri and Shortcuts.** "Turn on the AC in Mitra for MirAIe", "Make it cooler with Mitra for
-  MirAIe", "Switch Mitra for MirAIe to Dry" and more. Every action is also available in the
-  Shortcuts app, so you can schedule your AC with Shortcuts automations.
-- **Widgets** for the desktop and Notification Center, with working buttons, and a power toggle
-  for Control Center (when built from source).
-- **Every AC in the house.** Switch between all the ACs on your MirAIe account.
-- **Try it without an account.** The sign-in screen opens a demo AC with every control
-  working. Signed in, right-click the menu bar icon for Preview Mode, to try controls without
-  sending anything to your AC.
-
-Right-click the menu bar icon for Refresh, Settings, Sign Out and Quit.
-
-See [`macOS/README.md`](macOS/README.md) to build and run it.
-
 ## Contributing
 
 Bug reports, ideas and pull requests are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md), and
-please follow the [Code of Conduct](CODE_OF_CONDUCT.md). Report security problems privately;
-see [SECURITY.md](SECURITY.md).
-
-## Privacy
-
-You sign in with the same mobile number or email and password as the MirAIe app. Your password
-is stored in your Mac's Keychain and is only ever sent to MirAIe.
+please follow the [Code of Conduct](CODE_OF_CONDUCT.md). Report security problems privately; see
+[SECURITY.md](SECURITY.md).
 
 ## License
 
 [MIT](LICENSE) © 2026 Mido Reigh.
-
-## Disclaimer
-
-Mitra for MirAIe is an unofficial app. It isn't affiliated with or endorsed by Panasonic.
-MirAIe is a trademark of Panasonic.

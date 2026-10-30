@@ -1,38 +1,47 @@
 # Changelog
 
-All notable changes to this project are documented here. The format follows
-[Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
+What's new in each release of Mitra for MirAIe. Versions follow
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
-### Changed
+## [1.0.0] - 2026-10-31
 
-- New app icon in the app's own look: the graphite night sky, the white unit with its green
-  light and open flap, and cyan air streaming out.
-- Widgets redesigned to match the panel: the graphite backdrop, the drawn unit with its online
-  light, the set temperature large with the room temperature under it, the round power and ±
-  buttons, and fan and mode bars on the large widget.
-- Tapped widget controls show as pending until the AC confirms, and temperatures roll to new
-  values.
+Your Panasonic AC, right in your Mac's menu bar. This is the first release of Mitra for MirAIe
+for the Mac.
 
-## [1.0.0] - 2026-10-30
+### What's new
 
-First release of the macOS app.
+- **Your AC in the menu bar.** Click the icon and the whole AC is there, with the set temperature
+  beside the icon at a glance.
+- **A living picture of your AC.** The panel draws your unit blowing air: the flap tilts, the air
+  sweeps up and down and side to side at the unit's own pace, takes the mode's colour, and drifts
+  on Quiet or rushes on High.
+- **Always in sync.** Changes from the remote or the MirAIe app appear within a second or two,
+  and a light on the drawn unit shows whether your AC is online.
+- **Siri and Shortcuts.** Control your AC by voice, or automate it with Shortcuts.
+- **Try it before you sign in.** A demo AC shows everything without a MirAIe account.
 
-### Added
+### Features
 
-- Menu bar panel with an animated AC whose airflow follows both louvers, the mode's colour and
-  the fan speed.
-- Power, set temperature, mode, fan speed, up/down and left/right airflow with swing, Eco,
-  Powerful, Converti7, nanoe X and the display light.
-- Live sync with the AC over MQTT, with an online indicator on the drawn unit.
-- Room temperature as reported by the AC.
-- Features shown only when the AC has them, with per-AC switches in Settings.
-- Siri and Shortcuts actions.
-- Desktop and Notification Center widgets and a Control Center toggle (when built from source
-  with your own Apple developer team).
-- Preview mode, and a demo AC to try the app without a MirAIe account.
+- Power, and set temperature from 16 to 30 °C, with the room temperature your AC measures.
+- Modes: Auto, Cool, Dry and Fan, plus Heat on units that have it.
+- Fan speed: Auto, Quiet, Low, Medium and High.
+- Up/down and left/right airflow: swing, or any of five positions on each.
+- Eco, Powerful, Converti7 cooling levels, nanoe X on units that have it, and the display light.
+- Every AC on your MirAIe account, one click apart.
+- Siri and Shortcuts actions for power, temperature, mode, fan speed, airflow and status.
+- Preview Mode, to try controls without touching your AC.
+- Only what your AC has: Heat and nanoe X appear when your unit reports them, with per-AC
+  switches in Settings.
+- Launch at login, and a right-click menu for Refresh, Settings, Sign Out and Quit.
+- Your password stays in your Mac's Keychain and is only sent to MirAIe.
+
+### Good to know
+
+- Requires macOS 26 or later, on Apple silicon or Intel.
+- Desktop and Notification Center widgets and the Control Center toggle are available when you
+  build Mitra from source with your own Apple developer account.
 
 [Unreleased]: https://github.com/midoreigh/mitra-for-miraie/compare/v1.0.0...HEAD
 [1.0.0]: https://github.com/midoreigh/mitra-for-miraie/releases/tag/v1.0.0
