@@ -1,9 +1,10 @@
 name: CI
 
+# Pull requests only: main only changes through them, so a run after merging would repeat
+# one that just passed. Run it by hand from the Actions tab if needed.
 on:
-  push:
-    branches: [main]
   pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -13,8 +14,33 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # A quick look at what changed, on a cheap Linux machine, so documentation-only changes
+  # don't start a macOS machine.
+  changes:
+    name: Check what changed
+    runs-on: ubuntu-latest
+    outputs:
+      app: ${{ steps.diff.outputs.app }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - id: diff
+        run: |
+          if [ "${{ github.event_name }}" != "pull_request" ]; then
+            echo "app=true" >> "$GITHUB_OUTPUT"
+          elif git diff --name-only "${{ github.event.pull_request.base.sha }}" HEAD |
+              grep -qE '^(macOS/|\.github/workflows/)'; then
+            echo "app=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "app=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  # Required by branch protection. When skipped (no app changes), GitHub counts it as passed.
   macos:
     name: macOS build and test
+    needs: changes
+    if: needs.changes.outputs.app == 'true'
     runs-on: macos-26
     steps:
       - uses: actions/checkout@v7

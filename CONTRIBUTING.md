@@ -29,7 +29,9 @@ cd macOS/Packages/MitraKit && swift test
 
 ## Pull requests
 
-`main` is protected: changes go in through pull requests, and CI must pass before merging.
+`main` is protected: changes go in through pull requests, and CI must pass before merging. CI
+builds and tests the app when a pull request changes `macOS/` or the workflows; documentation-only
+changes skip it.
 
 1. Fork the repository and create a branch from `main`.
 2. Keep each pull request to one change, and describe what it does and why.
