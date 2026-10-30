@@ -20,6 +20,7 @@ final class ACStore {
     var isPreviewing = false {
         didSet {
             guard oldValue != isPreviewing else { return }
+            if !isPreviewing { UpdateChecker.shared.endSimulation() }
             if isDemo {
                 if !isPreviewing { endDemo() }
                 return

@@ -11,19 +11,32 @@ struct ControlView: View {
         VStack(spacing: 0) {
             hero
             VStack(spacing: 12) {
-                if !state.isOnline { offlineBanner }
                 Group {
                     fanSpeeds
                     modes
                     features
                 }
                 .disabled(!store.canControl)
-                .opacity(state.isOn ? 1 : 0.55)
+                .opacity(controlOpacity(off: 0.55))
                 UpdateBanner(updates: UpdateChecker.shared)
             }
             .padding(16)
             .animation(.snappy, value: UpdateChecker.shared.state)
         }
+        .animation(.snappy, value: state.isOnline)
+    }
+
+    /// Controls fade a little while the AC is off, and a lot while it's offline.
+    private func controlOpacity(off: Double) -> Double {
+        !state.isOnline ? 0.35 : state.isOn ? 1 : off
+    }
+
+    /// The AC as drawn. Offline, nothing it last reported can be trusted, so it's drawn idle:
+    /// no air and a dark display, with only the red light on.
+    private var drawnState: ACState {
+        var drawn = state
+        if !state.isOnline { drawn.isOn = false }
+        return drawn
     }
 
     // MARK: - Hero
@@ -33,10 +46,17 @@ struct ControlView: View {
     private var hero: some View {
         ZStack(alignment: .top) {
             heroBackground
-            ACUnitView(state: state, statusLight: connection.color, statusText: connection.text,
+            ACUnitView(state: drawnState, statusLight: connection.color, statusText: connection.text,
                        onStatusLightTap: store.isPreviewing ? { store.togglePreviewOnline() } : nil)
                 .padding(.top, 76)
                 .accessibilityLabel(Text("\(store.selected?.name ?? "AC"): \(state.summary). \(connection.text)"))
+            // Offline, the AC blows no air: the message takes its place under the unit, so nothing
+            // moves and it's clear it's the AC that can't be reached.
+            if !state.isOnline {
+                offlineNotice
+                    .padding(.top, 152)
+                    .transition(.opacity)
+            }
 
             VStack(spacing: 0) {
                 header
@@ -61,7 +81,7 @@ struct ControlView: View {
     }
 
     private var heroBackground: some View {
-        HeroBackground(isOn: state.isOn)
+        HeroBackground(isOn: drawnState.isOn)
     }
 
     private var header: some View {
@@ -147,7 +167,7 @@ struct ControlView: View {
             .disabled(!store.canControl || !state.mode.usesSetpoint)
             .padding(.bottom, 6)
         }
-        .opacity(state.isOn ? 1 : 0.6)
+        .opacity(controlOpacity(off: 0.6))
     }
 
     /// Up/down and left/right louvers: swing, or one of five fixed positions.
@@ -165,17 +185,26 @@ struct ControlView: View {
             }
         }
         .disabled(!store.canControl)
-        .opacity(state.isOn ? 1 : 0.6)
+        .opacity(controlOpacity(off: 0.6))
     }
 
     // MARK: - Controls
 
-    private var offlineBanner: some View {
-        Label("\(store.selected?.name ?? "The AC") is offline. Check its power and Wi-Fi.", systemImage: "wifi.slash")
-            .font(.caption)
-            .frame(maxWidth: .infinity)
-            .padding(8)
-            .glassEffect(.regular.tint(.orange.opacity(0.6)), in: .rect(cornerRadius: 12))
+    private var offlineNotice: some View {
+        // The icon sits beside both lines, centred on them; the block as a whole is centred.
+        HStack(alignment: .center, spacing: 10) {
+            Image(systemName: "wifi.slash")
+                .font(.title2.weight(.semibold))
+                .foregroundStyle(Color(red: 1.0, green: 0.62, blue: 0.25))
+            VStack(alignment: .leading, spacing: 3) {
+                Text("\(store.selected?.name ?? "The AC") is offline")
+                    .font(.headline)
+                Text("Check its power and Wi-Fi.")
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .frame(maxWidth: .infinity)
     }
 
     private var modes: some View {
@@ -320,13 +349,15 @@ private struct FeatureIcon: View {
     let tint: Color
     /// The icon's colour while on.
     var icon: Color = .white
+    @Environment(\.isEnabled) private var isEnabled
 
     var body: some View {
         Image(systemName: symbol)
             .symbolVariant(isOn ? .fill : .none)
             .font(.callout.weight(.semibold))
             .frame(maxWidth: .infinity, minHeight: 34)
-            .foregroundStyle(isOn ? icon : .secondary)
+            // Disabled, the panel dims the fill, so a dark icon (the bulb's) would vanish into it.
+            .foregroundStyle(isOn ? (isEnabled ? icon : Color.white) : .secondary)
             .background(Capsule().fill(tint.gradient).opacity(isOn ? 1 : 0))
             .contentShape(.capsule)
             .animation(.easeOut(duration: 0.15), value: isOn)

@@ -27,6 +27,9 @@ final class UpdateChecker {
     }
 
     private(set) var state = State.idle
+    /// Showing a pretend update, from Preview Mode, so the banner can be tried: nothing is
+    /// downloaded or opened.
+    private(set) var isSimulated = false
     private(set) var lastChecked: Date? = UserDefaults.standard.object(forKey: Key.lastChecked) as? Date
 
     var checksAutomatically = UserDefaults.standard.object(forKey: Key.automatic) as? Bool ?? true {
@@ -68,6 +71,7 @@ final class UpdateChecker {
 
     func check() async {
         if case .downloading = state { return }
+        if isSimulated { endSimulation() }
         state = .checking
         do {
             var request = URLRequest(url: Self.latest, timeoutInterval: 20)
@@ -97,6 +101,12 @@ final class UpdateChecker {
     /// Downloads the installer to Downloads and opens it. Without one, opens the release page.
     func update() async {
         guard let release else { return }
+        if isSimulated {
+            state = .downloading(release)
+            try? await Task.sleep(for: .seconds(2))
+            if isSimulated { state = .installerOpen(release) }
+            return
+        }
         guard let installer = release.installer else {
             NSWorkspace.shared.open(release.page)
             return
@@ -116,6 +126,20 @@ final class UpdateChecker {
             state = .available(release)
             NSWorkspace.shared.open(release.page) // fall back to downloading it in the browser
         }
+    }
+
+    /// Shows the banner for a pretend version 9.9.9, for trying it in Preview Mode.
+    func simulate() {
+        isSimulated = true
+        state = .available(Release(version: "9.9.9",
+                                   page: URL(string: "https://github.com/midoreigh/mitra-for-miraie/releases")!,
+                                   installer: nil))
+    }
+
+    func endSimulation() {
+        guard isSimulated else { return }
+        isSimulated = false
+        state = .idle
     }
 
     /// "1.10.0" is newer than "1.9.2"; missing parts count as 0.
