@@ -5,6 +5,12 @@ What's new in each release of Mitra for MirAIe. Versions follow
 
 ## [Unreleased]
 
+### Changed
+
+- Switching modes changes the air as it leaves the unit: the new colour flows out from the AC
+  and gradually fills the room, and warm air starts rising (or cool air sinking) smoothly,
+  instead of all the air changing and jumping at once.
+
 ### Fixed
 
 - The Settings window no longer shows a scroll bar when everything already fits.
