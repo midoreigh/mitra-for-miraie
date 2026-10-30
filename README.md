@@ -52,9 +52,7 @@ straight away. A light on the drawn unit tells you whether your AC is online.
 **Just ask Siri.** "Turn on the AC in Mitra for MirAIe." "Make it cooler with Mitra for MirAIe."
 Every action also works in Shortcuts, so your AC can switch on before you get home.
 
-<p align="center">
-  <img src="docs/media/demo-v2.gif" width="880" alt="Mitra open from the Mac menu bar: changing fan speed, mode, temperature and airflow, each with a single click">
-</p>
+https://github.com/user-attachments/assets/0306e648-c7ce-4be3-b48c-fe29fb07bad0
 
 ## Everything you can do
 
