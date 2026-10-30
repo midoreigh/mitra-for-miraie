@@ -26,6 +26,7 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableDoubleStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -40,6 +41,7 @@ import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -241,7 +243,7 @@ fun rememberFrameClock(running: Boolean): State<Double> {
     val time = remember { mutableDoubleStateOf(System.nanoTime() / 1e9) }
     LaunchedEffect(running) {
         while (running) {
-            androidx.compose.runtime.withFrameNanos { time.doubleValue = it / 1e9 }
+            withFrameNanos { time.doubleValue = it / 1e9 }
         }
     }
     return time
@@ -282,7 +284,7 @@ fun ACUnitScene(
             }
         }
         Canvas(Modifier.offset(x = unitLeft).size(unitWidth, unitHeight)) {
-            // The air already advanced the angles to this frame; this reads the same ones.
+            // The air already moved the louvers to this frame; this reads the same angles.
             drawUnitShell(state.isOn, motion.angles(state, clock.value))
         }
 
@@ -337,7 +339,7 @@ private fun UnitReadout(state: ACState, height: Dp) {
             style = TextStyle(
                 fontFamily = RoundedFamily, fontWeight = FontWeight.SemiBold,
                 fontSize = (height.value * 1.05f).sp, color = MitraColors.acDisplay, textAlign = TextAlign.End,
-                shadow = androidx.compose.ui.graphics.Shadow(MitraColors.acDisplay.copy(alpha = 0.35f), blurRadius = height.value * 0.4f),
+                shadow = Shadow(MitraColors.acDisplay.copy(alpha = 0.35f), blurRadius = height.value * 0.4f),
             ),
             maxLines = 1,
         )
@@ -351,16 +353,12 @@ private fun StatusLight(color: Color, diameter: Dp, modifier: Modifier = Modifie
         modifier
             .size(diameter)
             .drawBehind {
-                drawCircle(Brush.radialGradient(listOf(color.copy(alpha = 0.55f), Color.Transparent), radius = size.minDimension * 1.3f),
-                    radius = size.minDimension * 1.3f)
+                drawCircle(
+                    Brush.radialGradient(listOf(color.copy(alpha = 0.55f), Color.Transparent), radius = size.minDimension * 1.3f),
+                    radius = size.minDimension * 1.3f,
+                )
             }
-            .background(
-                Brush.radialGradient(
-                    listOf(color.mix(Color.White, 0.45f), color),
-                    center = Offset.Unspecified, radius = Float.POSITIVE_INFINITY,
-                ),
-                CircleShape,
-            ),
+            .background(Brush.radialGradient(listOf(color.mix(Color.White, 0.45f), color)), CircleShape),
     )
 }
 
@@ -496,13 +494,13 @@ fun GraphiteBackdrop(isOn: Boolean, modifier: Modifier = Modifier) {
         val glow = ACMode.FAN.glow
         val night = MitraColors.night
         drawRect(night)
-        // The top edge, lighter in the middle.
         drawRect(
             Brush.verticalGradient(
                 listOf(tint.mix(night, 0.74f + dim), tint.mix(night, 0.8f + dim), night),
                 startY = 0f, endY = size.height,
             ),
         )
+        // The top edge, lighter in the middle.
         drawRect(
             Brush.radialGradient(
                 listOf(glow.mix(night, 0.62f + dim).copy(alpha = 0.9f), Color.Transparent),

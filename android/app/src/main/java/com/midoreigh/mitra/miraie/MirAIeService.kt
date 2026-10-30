@@ -7,7 +7,6 @@ import com.midoreigh.mitra.model.Device
 import com.midoreigh.mitra.store.Credentials
 import com.midoreigh.mitra.store.SecretStore
 import com.midoreigh.mitra.store.SharedStore
-import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.json.JSONObject

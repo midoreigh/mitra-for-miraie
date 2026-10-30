@@ -125,6 +125,7 @@ class ACStore private constructor(private val context: Context) {
             it.copy(
                 devices = listOf(Device(DEMO_ID, "Living Room AC", "demo")),
                 states = mapOf(DEMO_ID to state), selectedId = DEMO_ID,
+                capabilities = emptyMap(),
                 isDemo = true, isPreviewing = true, phase = Phase.READY, error = null,
             )
         }
@@ -326,7 +327,13 @@ class ACStore private constructor(private val context: Context) {
         })
         val connectivity = context.getSystemService(ConnectivityManager::class.java)
         connectivity.registerDefaultNetworkCallback(object : ConnectivityManager.NetworkCallback() {
+            /** The network in use; the callback also reports it once on registering. */
+            private var last: Network? = null
+
             override fun onAvailable(network: Network) {
+                val changed = last != null && last != network
+                last = network
+                if (!changed) return
                 // A new network: the old connection is likely dead.
                 scope.launch {
                     delay(1_000)

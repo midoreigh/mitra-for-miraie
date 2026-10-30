@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Mitra for MirAIe</string>
+    <string name="launcher_name">Mitra</string>
+    <string name="widget_description">Your AC: power, temperature and what it\'s doing</string>
+    <string name="tile_label">AC</string>
+    <string name="shortcut_on">Turn on the AC</string>
+    <string name="shortcut_on_short">AC on</string>
+    <string name="shortcut_off">Turn off the AC</string>
+    <string name="shortcut_off_short">AC off</string>
+    <string name="shortcut_cooler">Make it cooler</string>
+    <string name="shortcut_cooler_short">Cooler</string>
+    <string name="shortcut_warmer">Make it warmer</string>
+    <string name="shortcut_warmer_short">Warmer</string>
+</resources>
