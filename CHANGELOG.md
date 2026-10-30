@@ -5,6 +5,13 @@ What's new in each release of Mitra for MirAIe. Versions follow
 
 ## [Unreleased]
 
+### What's new
+
+- **Mitra for Android.** The same living picture of your AC and one-tap controls for every
+  mode, fan speed and louver direction, now on Android phones, with a home-screen widget, a
+  Quick Settings tile for power and shortcuts when you long-press the app icon. Try it without
+  an account from the sign-in screen.
+
 ### Fixed
 
 - Updating no longer makes macOS ask again for permission to use your saved MirAIe login. (You

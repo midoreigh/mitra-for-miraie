@@ -1,5 +1,6 @@
 package com.midoreigh.mitra.miraie
 
+import android.util.Log
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.withTimeoutOrNull
 import java.io.IOException
@@ -8,9 +9,9 @@ import java.net.InetSocketAddress
 import java.net.Socket
 import java.util.concurrent.Executors
 import java.util.concurrent.RejectedExecutionException
-import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.ScheduledFuture
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
 import javax.net.ssl.SSLSocket
 import javax.net.ssl.SSLSocketFactory
 
@@ -69,17 +70,23 @@ class MqttClient(
         post { send(MqttPacket.publish(topic, payload)) }
     }
 
+    /** Stops the client's thread; it can't be used again. */
+    fun shutdown() {
+        queue.shutdown()
+    }
+
     // Internals
 
     private fun run(current: Int, clientId: String, username: String, password: String) {
         val socket: SSLSocket
         try {
             val factory = SSLSocketFactory.getDefault() as SSLSocketFactory
-            val plain = Socket().apply { connect(InetSocketAddress(host, port), 10_000) }
+            val plain = Socket()
+            plain.connect(InetSocketAddress(host, port), 10_000)
             socket = factory.createSocket(plain, host, port, true) as SSLSocket
-            socket.soTimeout = 0
             socket.startHandshake()
         } catch (e: IOException) {
+            Log.w(TAG, "Couldn't connect: $e")
             post { if (current == generation) closeWithNotice() }
             return
         }
@@ -104,7 +111,8 @@ class MqttClient(
                 val packets = decoder.append(buffer.copyOf(count))
                 post { if (current == generation) packets.forEach(::handle) }
             }
-        } catch (_: IOException) {
+        } catch (e: IOException) {
+            Log.i(TAG, "Connection closed: $e")
         }
         post { if (current == generation) closeWithNotice() }
     }
@@ -144,6 +152,7 @@ class MqttClient(
     private fun handle(packet: MqttPacket.Incoming) {
         when (packet) {
             is MqttPacket.Incoming.ConnAck -> if (packet.returnCode == 0) {
+                Log.i(TAG, "Connected")
                 startPing()
                 if (topics.isNotEmpty()) {
                     send(MqttPacket.subscribe(nextPacketId, topics))
@@ -151,6 +160,7 @@ class MqttClient(
                 }
                 listener.stateChanged(State.CONNECTED)
             } else {
+                Log.w(TAG, "Broker refused the connection: ${packet.returnCode}")
                 closeWithNotice()
                 if (packet.returnCode == 4 || packet.returnCode == 5) listener.authRejected()
             }
@@ -170,6 +180,8 @@ class MqttClient(
     }
 
     companion object {
+        private const val TAG = "MitraMQTT"
+
         /**
          * Connects, publishes one message and waits for a status message that [accepts],
          * then disconnects. Returns that message, or null if none arrived before [timeoutMs]
@@ -212,7 +224,7 @@ class MqttClient(
                     ?: if (published.get()) null else throw MitraException.Timeout()
             } finally {
                 client.disconnect()
-                client.queue.shutdown()
+                client.shutdown()
             }
         }
     }
