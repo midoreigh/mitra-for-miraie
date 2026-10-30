@@ -111,6 +111,8 @@ final class AirMotion {
 
 /// One frame of `ACUnitView`.
 public struct ACUnitScene: View {
+    /// The unit's width as a share of the scene's; the air fans out across the rest.
+    static let unitWidth = 0.64
     let state: ACState
     let time: TimeInterval
     let statusLight: Color?
@@ -138,11 +140,11 @@ public struct ACUnitScene: View {
         let angles = motion?.angles(for: state, at: time) ?? LouverAngles(state: state, time: time)
         let phase = motion?.phase(for: state.fan, at: time) ?? AirflowCanvas.phase(fan: state.fan, time: time)
         GeometryReader { geo in
-            let unitHeight = min(geo.size.height * 0.34, geo.size.width * 0.2)
+            let unitHeight = min(geo.size.height * 0.34, geo.size.width * Self.unitWidth / 3.9)
             VStack(spacing: 0) {
                 UnitBody(state: state, angles: angles, statusLight: statusLight, statusText: statusText,
                          onStatusLightTap: onStatusLightTap)
-                    .frame(width: geo.size.width * 0.78, height: unitHeight)
+                    .frame(width: geo.size.width * Self.unitWidth, height: unitHeight)
                     .zIndex(1) // the open flap hangs over the start of the air
                 AirflowCanvas(state: state, angles: angles, time: time, phase: phase)
                     .frame(width: geo.size.width)
@@ -358,7 +360,9 @@ struct AirflowCanvas: View {
             context.blendMode = .plusLighter
             for stream in 0..<Self.streams {
                 let u = Double(stream) / Double(Self.streams - 1)
-                let originX = size.width * (0.17 + 0.66 * u)
+                // Across the outlet: 84% of the unit's width, centred.
+                let outlet = ACUnitScene.unitWidth * 0.84
+                let originX = size.width * (0.5 + (u - 0.5) * outlet)
                 let fan = (u - 0.5) * 0.55 // streams spread out a little from the centre
                 for index in 0..<Self.particlesPerStream {
                     let seed = Self.noise(stream * 31 + index * 7)
