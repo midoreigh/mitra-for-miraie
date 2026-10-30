@@ -25,10 +25,15 @@
 </p>
 
 <p align="center">
-  <img src="docs/media/demo.gif" width="420" alt="Opening Mitra from the menu bar, then changing fan speed, mode and temperature">
+  <img src="docs/media/demo.gif" width="420" alt="Changing fan speed, mode, temperature and airflow in Mitra, each with a single click">
 </p>
 
 ## Why you'll like it
+
+**Go straight to the setting you want.** In the MirAIe app, the mode is a single button you tap
+again and again, stepping through every mode until you land on the one you want, and fan speed
+and air direction work the same way. In Mitra every option is laid out in front of you, so any
+mode, fan speed or air direction is just one click away.
 
 **It's always one click away.** No phone to find, no app to open, no remote lost down the side of
 the sofa. Click the icon in the menu bar and your AC is right there, with the set temperature
@@ -48,9 +53,9 @@ straight away. A light on the drawn unit tells you whether your AC is online.
 Every action also works in Shortcuts, so your AC can switch on before you get home.
 
 <p align="center">
-  <img src="docs/media/panel-auto.webp" width="360" alt="The panel in Auto mode, with purple air">
-  &nbsp;
-  <img src="docs/media/panel-heat.webp" width="360" alt="The panel in Heat mode, with warm air and Eco on">
+  <img src="docs/media/panel-cool.webp" width="260" alt="The panel in Cool mode, with blue air">
+  <img src="docs/media/panel-converti.webp" width="260" alt="Choosing a Converti7 cooling level from its menu">
+  <img src="docs/media/panel-heat.webp" width="260" alt="The panel in Heat mode, with warm air">
 </p>
 
 ## Everything you can do
@@ -58,9 +63,9 @@ Every action also works in Shortcuts, so your AC can switch on before you get ho
 | | |
 |---|---|
 | **Power and temperature** | Turn on and off, and set 16 to 30 °C with − and +. See the room temperature your AC measures. |
-| **Modes** | Auto, Cool, Dry and Fan, plus Heat on units that have it. |
-| **Fan speed** | Auto, Quiet, Low, Medium and High, named as in the MirAIe app. |
-| **Airflow** | Up/down and left/right: swing, or any of five positions on each. |
+| **Modes** | Auto, Cool, Dry and Fan, plus Heat on units that have it, each one click away. |
+| **Fan speed** | Auto, Quiet, Low, Medium and High, named as in the MirAIe app, each one click away. |
+| **Airflow** | Up/down and left/right: swing, or any of five positions on each, each one click away. |
 | **Features** | Eco, Powerful, Converti7 cooling levels, nanoe X on units that have it, and the display light. |
 | **Every AC** | Switch between all the ACs on your MirAIe account. |
 | **Siri and Shortcuts** | Power, temperature, mode, fan speed, airflow and status. |
