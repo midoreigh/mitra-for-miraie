@@ -5,6 +5,13 @@ What's new in each release of Mitra for MirAIe. Versions follow
 
 ## [Unreleased]
 
+### Added
+
+- Update checking: Mitra looks for new versions once a day, or when you choose Check for
+  Updates… from the right-click menu. A banner in the panel offers the update, downloads it and
+  opens the installer. Automatic checks can be turned off in Settings, which also shows your
+  version.
+
 ### Changed
 
 - Switching modes or fan speeds changes the air as it leaves the unit: the new colour, speed

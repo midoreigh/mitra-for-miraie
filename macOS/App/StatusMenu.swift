@@ -41,6 +41,11 @@ final class StatusMenu: NSObject {
             menu.addItem(preview)
         }
         menu.addItem(item("Settings…", #selector(showSettings), key: ","))
+        if let release = UpdateChecker.shared.release {
+            menu.addItem(item("Update to \(release.version)…", #selector(update)))
+        } else {
+            menu.addItem(item("Check for Updates…", #selector(checkForUpdates)))
+        }
         menu.addItem(.separator())
         if store?.phase == .ready, store?.isDemo == false {
             menu.addItem(item("Sign Out", #selector(signOut)))
@@ -63,6 +68,34 @@ final class StatusMenu: NSObject {
     }
 
     @objc private func togglePreview() { store?.isPreviewing.toggle() }
+
+    @objc private func update() { Task { await UpdateChecker.shared.update() } }
+
+    /// Checks now and says what it found: an update shows in the panel, anything else in an alert.
+    @objc private func checkForUpdates() {
+        Task {
+            let updates = UpdateChecker.shared
+            await updates.check()
+            let alert = NSAlert()
+            switch updates.state {
+            case .available(let release):
+                alert.messageText = "Version \(release.version) is available"
+                alert.informativeText = "You have \(updates.currentVersion)."
+                alert.addButton(withTitle: "Update")
+                alert.addButton(withTitle: "Later")
+            case .failed(let message):
+                alert.messageText = "Couldn't check for updates"
+                alert.informativeText = message
+            default:
+                alert.messageText = "You're up to date"
+                alert.informativeText = "Mitra for MirAIe \(updates.currentVersion) is the latest version."
+            }
+            NSApp.activate()
+            if alert.runModal() == .alertFirstButtonReturn, updates.release != nil {
+                await updates.update()
+            }
+        }
+    }
 
     @objc private func signOut() { store?.signOut() }
 

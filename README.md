@@ -86,8 +86,11 @@ Preview Mode, Settings, Sign Out and Quit.
 3. Click the AC icon in the menu bar and sign in with the mobile number or email you use in the
    MirAIe app, or choose **Try it without an account** to look around first.
 
-Requires macOS 26 or later, on Apple silicon or Intel. To update, download the new version and
-replace the app in Applications.
+Requires macOS 26 or later, on Apple silicon or Intel.
+
+**Updating:** Mitra checks for new versions once a day (or choose **Check for Updates…** from the
+right-click menu). When one is out, click **Update** in the panel: Mitra downloads it and opens
+the installer, and you drag the app into Applications to replace the old one.
 
 ## FAQ
 
@@ -96,7 +99,8 @@ Panasonic ACs that you control with the MirAIe app.
 
 **Is my password safe?**
 You sign in with your MirAIe account. Your password is kept in your Mac's Keychain and is only
-ever sent to MirAIe's own servers. Mitra has no analytics and talks to no other servers.
+ever sent to MirAIe's own servers. Mitra has no analytics; apart from MirAIe, it only contacts
+GitHub to check for new versions, which you can turn off in Settings.
 
 **Why does macOS say it can't verify the app?**
 Apple only vouches for apps from developers in its paid developer program. Mitra is a free,
