@@ -12,6 +12,11 @@ What's new in each release of Mitra for MirAIe. Versions follow
   Quick Settings tile for power and shortcuts when you long-press the app icon. Try it without
   an account from the sign-in screen.
 
+### Fixed
+
+- Updating no longer makes macOS ask again for permission to use your saved MirAIe login. (You
+  may be asked one last time when you update to this version.)
+
 ## [1.2.0] - 2026-10-31
 
 A warmer look for the display light.
