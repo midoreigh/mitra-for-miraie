@@ -93,9 +93,14 @@ Requires macOS 26 or later, on Apple silicon or Intel.
 
 **Updating:** Mitra checks for new versions once a day (or choose **Check for Updates…** from the
 right-click menu). When one is out, click **Update** in the panel: Mitra downloads it and opens
-the installer, and you drag the app into Applications to replace the old one. macOS treats each
-new version as a new download, so you'll need to click **Open Anyway** again (step 2 above) the
-first time you open it.
+the installer, and you drag the app into Applications to replace the old one. When you first open
+the new version, macOS may ask twice:
+
+- **Open Anyway:** macOS treats each new version as a new download, so click **Open Anyway** in
+  **System Settings ▸ Privacy & Security** again (step 2 above).
+- **Your Mac's login password or Touch ID:** macOS checks that the new version may use the
+  MirAIe sign-in you saved, once for each of Mitra's two saved items. Choose **Always Allow**.
+  From version 1.2.1 on, updates keep this permission, so you should only be asked once.
 
 ## FAQ
 
@@ -111,6 +116,13 @@ GitHub to check for new versions, which you can turn off in Settings.
 Apple only vouches for apps from developers in its paid developer program. Mitra is a free,
 open-source app, so macOS asks you to confirm the first time you open it. All of the source is
 here for anyone to check.
+
+**Why does macOS ask for my password after updating?**
+Mitra keeps your MirAIe sign-in in your Mac's Keychain, and macOS asks before a new version of an
+app can read what an earlier one saved. Enter your Mac's login password (or use Touch ID) and
+choose **Always Allow**; there may be two prompts, one for the sign-in and one for the session.
+Since version 1.2.1 every release is signed the same way, so after allowing it once, updates
+shouldn't ask again.
 
 **Are there widgets?**
 Yes, for the desktop and Notification Center, plus a Control Center toggle. They need an Apple
