@@ -12,14 +12,19 @@ What's new in each release of Mitra for MirAIe. Versions follow
   Quick Settings tile for power and shortcuts when you long-press the app icon. Try it without
   an account from the sign-in screen.
 
-### Changed
+## [1.3.0] - 2026-10-31
 
-- In Preview Mode, the right-click menu can show the update banner with a pretend version, to
-  try it without downloading anything.
-- When your AC is offline, the whole panel says so: the AC is drawn idle with its red light, the
-  message appears right under it, and every control is dimmed, without the panel shifting.
-- After downloading an update, the panel reminds you that macOS may ask you to click Open
-  Anyway in System Settings ▸ Privacy & Security before the new version opens.
+Clearer when your AC can't be reached, and smoother updates.
+
+### What's new
+
+- **Offline at a glance.** When your AC can't be reached, the whole panel shows it: the AC is
+  drawn idle with its red light, a message right under it says what to check, and every control
+  dims, without anything jumping around.
+- **Easier updates.** Once an update has downloaded, the panel tells you exactly what's next,
+  including where to click **Open Anyway** if macOS blocks the new version.
+- **Try the update banner first.** In Preview Mode, choose **Preview Update Banner** from the
+  right-click menu to see how updating works, without downloading anything.
 
 ## [1.2.1] - 2026-10-31
 
@@ -100,7 +105,8 @@ for the Mac.
 - Desktop and Notification Center widgets and the Control Center toggle are available when you
   build Mitra from source with your own Apple developer account.
 
-[Unreleased]: https://github.com/midoreigh/mitra-for-miraie/compare/v1.2.1...HEAD
+[Unreleased]: https://github.com/midoreigh/mitra-for-miraie/compare/v1.3.0...HEAD
+[1.3.0]: https://github.com/midoreigh/mitra-for-miraie/compare/v1.2.1...v1.3.0
 [1.2.1]: https://github.com/midoreigh/mitra-for-miraie/compare/v1.2.0...v1.2.1
 [1.2.0]: https://github.com/midoreigh/mitra-for-miraie/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/midoreigh/mitra-for-miraie/compare/v1.0.0...v1.1.0
