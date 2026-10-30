@@ -19,10 +19,23 @@ final class ACStore {
     /// is reloaded.
     var isPreviewing = false {
         didSet {
-            guard oldValue, !isPreviewing else { return }
-            if isDemo { endDemo() } else { Task { await start() } }
+            guard oldValue != isPreviewing else { return }
+            if isDemo {
+                if !isPreviewing { endDemo() }
+                return
+            }
+            if isPreviewing {
+                statesBeforePreview = states
+            } else {
+                // Back to the real settings at once, then catch up on anything the AC changed
+                // meanwhile (its status was ignored while previewing).
+                if let real = statesBeforePreview { states = real }
+                statesBeforePreview = nil
+                Task { await start() }
+            }
         }
     }
+    private var statesBeforePreview: [String: ACState]?
     /// Showing a made-up AC, so the app can be tried without a MirAIe account. Always in
     /// preview mode; nothing is sent or saved, and leaving preview ends it.
     private(set) var isDemo = false
