@@ -25,7 +25,7 @@
 </p>
 
 <p align="center">
-  <img src="docs/media/demo.gif" width="420" alt="Changing fan speed, mode, temperature and airflow in Mitra, each with a single click">
+  <img src="docs/media/demo-v2.gif" width="880" alt="Mitra open from the Mac menu bar: changing fan speed, mode, temperature and airflow, each with a single click">
 </p>
 
 ## Why you'll like it
@@ -74,7 +74,7 @@ can switch features on or off for each AC in Settings. Right-click the menu bar 
 Preview Mode, Settings, Sign Out and Quit.
 
 <p align="center">
-  <img src="docs/media/showcase-converti-settings-v3.png" width="620" alt="Choosing a Converti7 cooling level, and Settings, where you enable the features your AC has">
+  <img src="docs/media/showcase-converti-settings-v4.png" width="620" alt="Choosing a Converti7 cooling level, and Settings, where you enable the features your AC has">
 </p>
 
 ## Install
