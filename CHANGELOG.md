@@ -5,6 +5,11 @@ What's new in each release of Mitra for MirAIe. Versions follow
 
 ## [Unreleased]
 
+### Fixed
+
+- Updating no longer makes macOS ask again for permission to use your saved MirAIe login. (You
+  may be asked one last time when you update to this version.)
+
 ## [1.2.0] - 2026-10-31
 
 A warmer look for the display light.
