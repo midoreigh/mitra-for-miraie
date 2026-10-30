@@ -32,6 +32,9 @@ final class HintCenter {
 struct HoverHint: ViewModifier {
     let text: String
     let edge: Edge
+    /// For hints above or below: which edge of the control they line up with. Centred by
+    /// default; leading or trailing keeps a hint near the panel's edge from being cut off.
+    var anchor: HorizontalAlignment = .center
     var isShown: Bool?
     var onHover: ((Bool) -> Void)?
     @State private var hovering = false
@@ -92,8 +95,8 @@ struct HoverHint: ViewModifier {
 
     private var alignment: Alignment {
         switch edge {
-        case .top: .top
-        case .bottom: .bottom
+        case .top: Alignment(horizontal: anchor, vertical: .top)
+        case .bottom: Alignment(horizontal: anchor, vertical: .bottom)
         case .leading: .leading
         case .trailing: .trailing
         }
@@ -102,7 +105,8 @@ struct HoverHint: ViewModifier {
 
 public extension View {
     /// Names a control in a glass label on one side of it, shortly after the pointer rests on it.
-    func hoverHint(_ text: String, edge: Edge = .top, isShown: Bool? = nil, onHover: ((Bool) -> Void)? = nil) -> some View {
-        modifier(HoverHint(text: text, edge: edge, isShown: isShown, onHover: onHover))
+    func hoverHint(_ text: String, edge: Edge = .top, anchor: HorizontalAlignment = .center,
+                   isShown: Bool? = nil, onHover: ((Bool) -> Void)? = nil) -> some View {
+        modifier(HoverHint(text: text, edge: edge, anchor: anchor, isShown: isShown, onHover: onHover))
     }
 }

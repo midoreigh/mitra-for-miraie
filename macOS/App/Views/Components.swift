@@ -36,7 +36,9 @@ struct GlassSegments<Value: Hashable, Label: View>: View {
                             .matchedGeometryEffect(id: "selection", in: namespace)
                     }
                 }
-                .hoverHint(hint(value), isShown: hovered == value) { inside in
+                // The end options' hints line up with the bar's ends, so the panel can't cut them off.
+                .hoverHint(hint(value), anchor: value == values.first ? .leading : value == values.last ? .trailing : .center,
+                           isShown: hovered == value) { inside in
                     if inside { hovered = value } else if hovered == value { hovered = nil }
                 }
                 .zIndex(hovered == value ? 1 : 0)

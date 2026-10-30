@@ -128,7 +128,7 @@ struct ControlView: View {
                         .contentTransition(.numericText())
                         .animation(.smooth, value: room)
                         // Above, not beside: to the right it would run into − and +.
-                        .hoverHint("Room temperature, measured by the AC", edge: .top)
+                        .hoverHint("Room temperature, measured by the AC", edge: .top, anchor: .leading)
                 }
             }
             // Its hints draw over the − / + buttons, not under them.
