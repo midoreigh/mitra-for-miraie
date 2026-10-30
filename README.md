@@ -53,7 +53,7 @@ straight away. A light on the drawn unit tells you whether your AC is online.
 Every action also works in Shortcuts, so your AC can switch on before you get home.
 
 <p align="center">
-  <img src="docs/media/showcase-panel.png" alt="Three views of the panel: Cool mode with every setting one click away, the panel opening from the menu bar in Auto mode, and Preview Mode, for trying the app without signing in">
+  <img src="docs/media/showcase-panel-v2.png" alt="Three views of the panel: Cool mode with every setting one click away, the panel opening from the menu bar in Auto mode, and Preview Mode, for trying the app without signing in">
 </p>
 
 ## Everything you can do
@@ -74,7 +74,7 @@ can switch features on or off for each AC in Settings. Right-click the menu bar 
 Preview Mode, Settings, Sign Out and Quit.
 
 <p align="center">
-  <img src="docs/media/showcase-converti-settings.png" width="620" alt="Choosing a Converti7 cooling level, and Settings, where you enable the features your AC has">
+  <img src="docs/media/showcase-converti-settings-v2.png" width="620" alt="Choosing a Converti7 cooling level, and Settings, where you enable the features your AC has">
 </p>
 
 ## Install
