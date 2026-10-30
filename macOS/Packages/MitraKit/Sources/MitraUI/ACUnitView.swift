@@ -70,7 +70,8 @@ public struct ACUnitView: View {
 
 /// Carries the animation from one frame to the next, so changes ease in rather than jump:
 /// the louvers travel to a new position at a brisk but visible pace (faster than they swing),
-/// and a new fan speed changes how fast the air moves without the air leaping ahead.
+/// and each bit of air keeps the fan speed and mode it left the unit with, so a change flows
+/// out from the outlet instead of the whole room changing at once.
 @MainActor
 final class AirMotion {
     /// Degrees per second when moving to a new position; swinging tops out near 10.
@@ -79,8 +80,13 @@ final class AirMotion {
     private var vertical: Double?
     private var horizontal: Double?
     private var lastTime: TimeInterval?
-    private var fan: FanSpeed?
-    private var phaseOffset = 0.0
+    private var air: [AirParticle] = []
+    private var airTime: TimeInterval?
+    /// For each stream, progress towards releasing its next bit of air, and how far apart (on
+    /// average 1) the next release is, so the air comes out irregularly rather than in rows.
+    private var release: [Double] = []
+    private var gap: [Double] = []
+    private var released = 0
 
     func angles(for state: ACState, at time: TimeInterval) -> LouverAngles {
         let target = LouverAngles(state: state, time: time)
@@ -99,14 +105,54 @@ final class AirMotion {
         return next
     }
 
-    func phase(for fan: FanSpeed, at time: TimeInterval) -> Double {
-        if let old = self.fan, old != fan {
-            // Keep the air where it is; only its speed changes from here on.
-            phaseOffset += AirflowCanvas.phase(fan: old, time: time) - AirflowCanvas.phase(fan: fan, time: time)
+    /// Moves every bit of air along at its own speed, and releases new air from the outlet at
+    /// the current fan speed, carrying the current mode. Air already in the room carries on as it
+    /// left until it fades, so a change starts at the outlet straight away and flows outward.
+    func air(for state: ACState, at time: TimeInterval) -> [AirParticle] {
+        if release.isEmpty {
+            air = AirflowCanvas.steadyAir(state: state, time: time)
+            release = (0..<AirflowCanvas.streams).map { AirflowCanvas.noise($0 * 13 + 5) }
+            gap = (0..<AirflowCanvas.streams).map { 0.4 + 1.2 * AirflowCanvas.noise($0 * 29 + 3) }
         }
-        self.fan = fan
-        return AirflowCanvas.phase(fan: fan, time: time) + phaseOffset
+        // A long gap (the animation was paused) shouldn't turn into one big jump.
+        let elapsed = airTime.map { min(0.1, max(0, time - $0)) } ?? 0
+        airTime = time
+        let speed = AirflowCanvas.speed(fan: state.fan, time: time)
+
+        for index in air.indices { air[index].progress += air[index].speed * elapsed }
+        air.removeAll { $0.progress >= 1 }
+
+        // At a steady speed each stream holds `particlesPerStream` bits of air, as before.
+        let perStream = Double(AirflowCanvas.particlesPerStream)
+        for stream in release.indices {
+            release[stream] += speed * elapsed * perStream
+            while release[stream] >= gap[stream] {
+                release[stream] -= gap[stream]
+                released += 1
+                let seed = AirflowCanvas.noise(released * 17 + stream)
+                gap[stream] = 0.4 + 1.2 * AirflowCanvas.noise(released * 23 + stream * 7)
+                // Already a little way out if it was due part-way through this frame; each bit
+                // travels a touch faster or slower than the next.
+                air.append(AirParticle(stream: stream, seed: seed,
+                                       progress: release[stream] / perStream, speed: speed * (0.9 + 0.2 * seed),
+                                       fan: state.fan, mode: state.mode))
+            }
+        }
+        return air
     }
+}
+
+/// One bit of air on its way from the outlet: which stream it's in, how far it has gone (0 to
+/// 1), how fast it travels, and the fan speed and mode it left the unit with, which set its
+/// colour and whether it sinks or rises.
+struct AirParticle {
+    let stream: Int
+    /// Varies its brightness, so the air doesn't look uniform.
+    let seed: Double
+    var progress: Double
+    var speed: Double
+    var fan: FanSpeed
+    var mode: ACMode
 }
 
 /// One frame of `ACUnitView`.
@@ -138,7 +184,7 @@ public struct ACUnitScene: View {
 
     public var body: some View {
         let angles = motion?.angles(for: state, at: time) ?? LouverAngles(state: state, time: time)
-        let phase = motion?.phase(for: state.fan, at: time) ?? AirflowCanvas.phase(fan: state.fan, time: time)
+        let air = motion?.air(for: state, at: time) ?? AirflowCanvas.steadyAir(state: state, time: time)
         GeometryReader { geo in
             let unitHeight = min(geo.size.height * 0.34, geo.size.width * Self.unitWidth / 3.9)
             VStack(spacing: 0) {
@@ -146,7 +192,7 @@ public struct ACUnitScene: View {
                          onStatusLightTap: onStatusLightTap)
                     .frame(width: geo.size.width * Self.unitWidth, height: unitHeight)
                     .zIndex(1) // the open flap hangs over the start of the air
-                AirflowCanvas(state: state, angles: angles, time: time, phase: phase)
+                AirflowCanvas(state: state, angles: angles, time: time, air: air)
                     .frame(width: geo.size.width)
                     .opacity(state.isOn ? 1 : 0)
                     .animation(.easeInOut(duration: 0.6), value: state.isOn)
@@ -336,52 +382,49 @@ struct AirflowCanvas: View {
     let state: ACState
     let angles: LouverAngles
     let time: TimeInterval
-    /// How far the air has travelled; see `phase(fan:time:)`.
-    let phase: Double
+    /// Every bit of air on its way out of the unit.
+    let air: [AirParticle]
 
-    private static let streams = 13
-    private static let particlesPerStream = 7
+    static let streams = 13
+    static let particlesPerStream = 7
 
     var body: some View {
         Canvas { context, size in
             let tilt = angles.vertical * .pi / 180
             let steer = angles.horizontal * .pi / 180
             let reach = size.height * 1.05
-            // Cool air sinks and warm air rises a little as it travels.
-            let buoyancy: Double = switch state.mode {
-            case .cool, .dry: 0.22
-            case .heat: -0.18
-            default: 0.05
-            }
-
-            let tint = state.mode.tint
-            let glow = state.mode.glow
-
             context.blendMode = .plusLighter
-            for stream in 0..<Self.streams {
-                let u = Double(stream) / Double(Self.streams - 1)
-                // Across the outlet: 84% of the unit's width, centred.
-                let outlet = ACUnitScene.unitWidth * 0.84
+            // Across the outlet: 84% of the unit's width, centred.
+            let outlet = ACUnitScene.unitWidth * 0.84
+            for particle in air {
+                let u = Double(particle.stream) / Double(Self.streams - 1)
                 let originX = size.width * (0.5 + (u - 0.5) * outlet)
                 let fan = (u - 0.5) * 0.55 // streams spread out a little from the centre
-                for index in 0..<Self.particlesPerStream {
-                    let seed = Self.noise(stream * 31 + index * 7)
-                    let progress = (phase + Double(index) / Double(Self.particlesPerStream) + seed)
-                        .truncatingRemainder(dividingBy: 1)
-                    let head = Self.point(progress, originX: originX, tilt: tilt, steer: steer + fan,
-                                     reach: reach, buoyancy: buoyancy, size: size)
-                    let tail = Self.point(max(0, progress - 0.12), originX: originX, tilt: tilt, steer: steer + fan,
-                                     reach: reach, buoyancy: buoyancy, size: size)
-                    var path = Path()
-                    path.move(to: tail.position)
-                    path.addLine(to: head.position)
-                    let fade = sin(.pi * progress) * (0.55 + 0.35 * seed) * Self.breath(fan: state.fan, time: time)
-                    context.stroke(path,
-                                   with: .linearGradient(Gradient(colors: [tint.opacity(0), glow.opacity(fade)]),
-                                                         startPoint: tail.position, endPoint: head.position),
-                                   style: StrokeStyle(lineWidth: 1.2 + 2.4 * head.depth, lineCap: .round))
-                }
+                let progress = particle.progress
+                let mode = particle.mode
+                let buoyancy = Self.buoyancy(mode)
+                let head = Self.point(progress, originX: originX, tilt: tilt, steer: steer + fan,
+                                      reach: reach, buoyancy: buoyancy, size: size)
+                let tail = Self.point(max(0, progress - 0.12), originX: originX, tilt: tilt, steer: steer + fan,
+                                      reach: reach, buoyancy: buoyancy, size: size)
+                var path = Path()
+                path.move(to: tail.position)
+                path.addLine(to: head.position)
+                let fade = sin(.pi * progress) * (0.55 + 0.35 * particle.seed) * Self.breath(fan: particle.fan, time: time)
+                context.stroke(path,
+                               with: .linearGradient(Gradient(colors: [mode.tint.opacity(0), mode.glow.opacity(fade)]),
+                                                     startPoint: tail.position, endPoint: head.position),
+                               style: StrokeStyle(lineWidth: 1.2 + 2.4 * head.depth, lineCap: .round))
             }
+        }
+    }
+
+    /// Cool air sinks and warm air rises a little as it travels.
+    static func buoyancy(_ mode: ACMode) -> Double {
+        switch mode {
+        case .cool, .dry: 0.22
+        case .heat: -0.18
+        default: 0.05
         }
     }
 
@@ -413,6 +456,30 @@ struct AirflowCanvas: View {
         }
     }
 
+    /// The air as it is when the fan has been steady: evenly spread along each stream, all at
+    /// the current speed and mode. Where the animation starts, and all a widget can show.
+    static func steadyAir(state: ACState, time: TimeInterval) -> [AirParticle] {
+        let phase = phase(fan: state.fan, time: time)
+        let speed = speed(fan: state.fan, time: time)
+        return (0..<streams).flatMap { stream in
+            (0..<particlesPerStream).map { index in
+                let seed = noise(stream * 31 + index * 7)
+                let progress = (phase + Double(index) / Double(particlesPerStream) + seed)
+                    .truncatingRemainder(dividingBy: 1)
+                return AirParticle(stream: stream, seed: seed, progress: progress, speed: speed,
+                                   fan: state.fan, mode: state.mode)
+            }
+        }
+    }
+
+    /// How fast air leaves the outlet right now: the rate at which `phase(fan:time:)` grows.
+    static func speed(fan: FanSpeed, time: TimeInterval) -> Double {
+        switch fan {
+        case .auto: 0.36 + 0.08 * cos(time.truncatingRemainder(dividingBy: 3600) * 0.5)
+        default: pace(fan)
+        }
+    }
+
     /// Air travelled per second at each fixed speed: Quiet a slow drift, High more than four
     /// times as fast.
     private static func pace(_ fan: FanSpeed) -> Double {
@@ -431,7 +498,7 @@ struct AirflowCanvas: View {
     }
 
     /// Stable pseudo-random value in 0..<1, so particles don't march in lockstep.
-    private static func noise(_ seed: Int) -> Double {
+    static func noise(_ seed: Int) -> Double {
         let value = sin(Double(seed) * 12.9898) * 43758.5453
         return value - value.rounded(.down)
     }
