@@ -10,6 +10,7 @@
 # need a provisioning profile) are unavailable. The widget extension depends on them, so it's
 # removed from the release; the menu bar app and Siri/Shortcuts work fully.
 set -euo pipefail
+# Plain ASCII output: CI runs in the C locale, where bytes after a variable name can be read as part of it.
 cd "$(dirname "$0")/.."
 
 version="${1:-$(sed -n 's/.*MARKETING_VERSION = \(.*\);/\1/p' Mitra.xcodeproj/project.pbxproj | head -1)}"
@@ -20,7 +21,7 @@ entitlements=Config/Mitra-Release.entitlements
 rm -rf "$build"
 mkdir -p "$build"
 
-echo "Building $app_name $version…"
+echo "Building ${app_name} ${version}..."
 xcodebuild -project Mitra.xcodeproj -scheme Mitra -configuration Release \
     -derivedDataPath "$build/DerivedData" -destination "generic/platform=macOS" \
     ARCHS="arm64 x86_64" ONLY_ACTIVE_ARCH=NO \
@@ -34,7 +35,7 @@ rm -rf "$app/Contents/PlugIns/MitraWidgets.appex"
 codesign --force --sign - --options runtime --entitlements "$entitlements" "$app"
 codesign --verify --deep --strict "$app"
 
-echo "Packaging…"
+echo "Packaging..."
 staging="$build/dmg"
 mkdir -p "$staging"
 cp -R "$app" "$staging/"
