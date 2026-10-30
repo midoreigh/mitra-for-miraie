@@ -19,7 +19,7 @@
 
 <p align="center">
   <a href="https://github.com/midoreigh/mitra-for-miraie/releases/latest"><img src="https://img.shields.io/github/v/release/midoreigh/mitra-for-miraie" alt="Latest release"></a>
-  <a href="https://github.com/midoreigh/mitra-for-miraie/actions/workflows/ci.yml"><img src="https://github.com/midoreigh/mitra-for-miraie/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://github.com/midoreigh/mitra-for-miraie/actions/workflows/ci.yml"><img src="https://github.com/midoreigh/mitra-for-miraie/actions/workflows/ci.yml/badge.svg?event=pull_request" alt="CI"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="License: MIT"></a>
   <img src="https://img.shields.io/badge/macOS-26%2B-black" alt="macOS 26 or later">
 </p>
