@@ -9,21 +9,36 @@ struct ControlView: View {
 
     var body: some View {
         VStack(spacing: 0) {
+            // Across the top of the whole panel, so it's clear nothing below can reach the AC.
+            if !state.isOnline { offlineBanner }
             hero
             VStack(spacing: 12) {
-                if !state.isOnline { offlineBanner }
                 Group {
                     fanSpeeds
                     modes
                     features
                 }
                 .disabled(!store.canControl)
-                .opacity(state.isOn ? 1 : 0.55)
+                .opacity(controlOpacity(off: 0.55))
                 UpdateBanner(updates: UpdateChecker.shared)
             }
             .padding(16)
             .animation(.snappy, value: UpdateChecker.shared.state)
         }
+        .animation(.snappy, value: state.isOnline)
+    }
+
+    /// Controls fade a little while the AC is off, and a lot while it's offline.
+    private func controlOpacity(off: Double) -> Double {
+        !state.isOnline ? 0.35 : state.isOn ? 1 : off
+    }
+
+    /// The AC as drawn. Offline, nothing it last reported can be trusted, so it's drawn idle:
+    /// no air and a dark display, with only the red light on.
+    private var drawnState: ACState {
+        var drawn = state
+        if !state.isOnline { drawn.isOn = false }
+        return drawn
     }
 
     // MARK: - Hero
@@ -33,7 +48,7 @@ struct ControlView: View {
     private var hero: some View {
         ZStack(alignment: .top) {
             heroBackground
-            ACUnitView(state: state, statusLight: connection.color, statusText: connection.text,
+            ACUnitView(state: drawnState, statusLight: connection.color, statusText: connection.text,
                        onStatusLightTap: store.isPreviewing ? { store.togglePreviewOnline() } : nil)
                 .padding(.top, 76)
                 .accessibilityLabel(Text("\(store.selected?.name ?? "AC"): \(state.summary). \(connection.text)"))
@@ -61,7 +76,7 @@ struct ControlView: View {
     }
 
     private var heroBackground: some View {
-        HeroBackground(isOn: state.isOn)
+        HeroBackground(isOn: drawnState.isOn)
     }
 
     private var header: some View {
@@ -147,7 +162,7 @@ struct ControlView: View {
             .disabled(!store.canControl || !state.mode.usesSetpoint)
             .padding(.bottom, 6)
         }
-        .opacity(state.isOn ? 1 : 0.6)
+        .opacity(controlOpacity(off: 0.6))
     }
 
     /// Up/down and left/right louvers: swing, or one of five fixed positions.
@@ -165,17 +180,21 @@ struct ControlView: View {
             }
         }
         .disabled(!store.canControl)
-        .opacity(state.isOn ? 1 : 0.6)
+        .opacity(controlOpacity(off: 0.6))
     }
 
     // MARK: - Controls
 
+    /// A full-width strip at the very top of the panel.
     private var offlineBanner: some View {
         Label("\(store.selected?.name ?? "The AC") is offline. Check its power and Wi-Fi.", systemImage: "wifi.slash")
-            .font(.caption)
+            .font(.caption.weight(.semibold))
+            .foregroundStyle(.white)
             .frame(maxWidth: .infinity)
-            .padding(8)
-            .glassEffect(.regular.tint(.orange.opacity(0.6)), in: .rect(cornerRadius: 12))
+            .padding(.vertical, 9)
+            .padding(.horizontal, 16)
+            .background(Color(red: 0.62, green: 0.33, blue: 0.0))
+            .transition(.move(edge: .top).combined(with: .opacity))
     }
 
     private var modes: some View {

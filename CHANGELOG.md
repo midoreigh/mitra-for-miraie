@@ -14,6 +14,8 @@ What's new in each release of Mitra for MirAIe. Versions follow
 
 ### Changed
 
+- When your AC is offline, the whole panel says so: the warning sits across the top, the AC is
+  drawn idle with its red light, and all the controls are dimmed.
 - After downloading an update, the panel reminds you that macOS may ask you to click Open
   Anyway in System Settings ▸ Privacy & Security before the new version opens.
 
