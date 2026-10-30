@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut android:shortcutId="power_on" android:icon="@drawable/ic_shortcut_power"
+        android:shortcutShortLabel="@string/shortcut_on_short" android:shortcutLongLabel="@string/shortcut_on">
+        <intent android:action="com.midoreigh.mitra.POWER_ON" android:targetPackage="com.midoreigh.mitra"
+            android:targetClass="com.midoreigh.mitra.MainActivity" />
+    </shortcut>
+    <shortcut android:shortcutId="power_off" android:icon="@drawable/ic_shortcut_power"
+        android:shortcutShortLabel="@string/shortcut_off_short" android:shortcutLongLabel="@string/shortcut_off">
+        <intent android:action="com.midoreigh.mitra.POWER_OFF" android:targetPackage="com.midoreigh.mitra"
+            android:targetClass="com.midoreigh.mitra.MainActivity" />
+    </shortcut>
+    <shortcut android:shortcutId="cooler" android:icon="@drawable/ic_shortcut_cooler"
+        android:shortcutShortLabel="@string/shortcut_cooler_short" android:shortcutLongLabel="@string/shortcut_cooler">
+        <intent android:action="com.midoreigh.mitra.COOLER" android:targetPackage="com.midoreigh.mitra"
+            android:targetClass="com.midoreigh.mitra.MainActivity" />
+    </shortcut>
+    <shortcut android:shortcutId="warmer" android:icon="@drawable/ic_shortcut_warmer"
+        android:shortcutShortLabel="@string/shortcut_warmer_short" android:shortcutLongLabel="@string/shortcut_warmer">
+        <intent android:action="com.midoreigh.mitra.WARMER" android:targetPackage="com.midoreigh.mitra"
+            android:targetClass="com.midoreigh.mitra.MainActivity" />
+    </shortcut>
+</shortcuts>

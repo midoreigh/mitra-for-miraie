@@ -5,6 +5,13 @@ What's new in each release of Mitra for MirAIe. Versions follow
 
 ## [Unreleased]
 
+### Added
+
+- Mitra for MirAIe for Android phones: the same living picture of your AC and one-tap
+  controls for every mode, fan speed and louver direction, plus a home-screen widget, a Quick
+  Settings tile for power and app shortcuts (long-press the icon). Try it without an account
+  from the sign-in screen.
+
 ### Changed
 
 - Switching modes or fan speeds changes the air as it leaves the unit: the new colour, speed

@@ -21,6 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       app: ${{ steps.diff.outputs.app }}
+      android: ${{ steps.diff.outputs.android }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -34,6 +35,14 @@ jobs:
             echo "app=true" >> "$GITHUB_OUTPUT"
           else
             echo "app=false" >> "$GITHUB_OUTPUT"
+          fi
+          if [ "${{ github.event_name }}" != "pull_request" ]; then
+            echo "android=true" >> "$GITHUB_OUTPUT"
+          elif git diff --name-only "${{ github.event.pull_request.base.sha }}" HEAD |
+              grep -qE '^(android/|\.github/workflows/)'; then
+            echo "android=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "android=false" >> "$GITHUB_OUTPUT"
           fi
 
   # Required by branch protection. When skipped (no app changes), GitHub counts it as passed.
@@ -58,3 +67,22 @@ jobs:
           xcodebuild -project Mitra.xcodeproj -scheme Mitra
           -destination 'generic/platform=macOS'
           CODE_SIGNING_ALLOWED=NO build
+
+  android:
+    name: Android build and test
+    needs: changes
+    if: needs.changes.outputs.android == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - uses: gradle/actions/setup-gradle@v5
+
+      - name: Test and build
+        working-directory: android
+        run: ./gradlew testDebugUnitTest assembleDebug
