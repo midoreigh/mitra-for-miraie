@@ -4,13 +4,20 @@ What's new in each release of Mitra for MirAIe for Mac. Versions follow
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html). The Android app is versioned
 separately; see [its changelog](android/CHANGELOG.md).
 
-## [Unreleased]
+## [1.4.0] - 2026-10-31
+
+The AC on screen now switches on and off like the real thing.
 
 ### What's new
 
 - **A livelier power switch.** Turn your AC on and the drawn unit comes to life the way the real
   one does: the flap swings open, the fan spins up and the air gathers from the outlet while the
   display glows on. Turn it off and the air slows and fades before the flap closes.
+
+### Fixes
+
+- **Settings fits on your screen.** The Settings window no longer runs past the top and bottom
+  of smaller screens; anything that doesn't fit scrolls.
 
 ## [1.3.0] - 2026-10-31
 
@@ -107,6 +114,7 @@ for the Mac.
 - Desktop and Notification Center widgets and the Control Center toggle are available when you
   build Mitra from source with your own Apple developer account.
 
+[1.4.0]: https://github.com/midoreigh/mitra-for-miraie/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/midoreigh/mitra-for-miraie/compare/v1.2.1...v1.3.0
 [1.2.1]: https://github.com/midoreigh/mitra-for-miraie/compare/v1.2.0...v1.2.1
 [1.2.0]: https://github.com/midoreigh/mitra-for-miraie/compare/v1.1.0...v1.2.0
