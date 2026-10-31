@@ -27,7 +27,11 @@ class MqttClient(
 
     interface Listener {
         fun stateChanged(state: State) {}
-        fun message(topic: String, payload: ByteArray) {}
+        /**
+         * [retained] is true when the broker replays the last message it kept for the topic on
+         * subscribing, which can be from long ago.
+         */
+        fun message(topic: String, payload: ByteArray, retained: Boolean) {}
         /** The broker refused the credentials (CONNACK 4 or 5), usually an expired token. */
         fun authRejected() {}
     }
@@ -164,7 +168,7 @@ class MqttClient(
                 closeWithNotice()
                 if (packet.returnCode == 4 || packet.returnCode == 5) listener.authRejected()
             }
-            is MqttPacket.Incoming.Publish -> listener.message(packet.topic, packet.payload)
+            is MqttPacket.Incoming.Publish -> listener.message(packet.topic, packet.payload, packet.retained)
             else -> Unit
         }
     }
@@ -210,8 +214,9 @@ class MqttClient(
                     }
                 }
 
-                override fun message(topic: String, payload: ByteArray) {
-                    if (topic == awaiting && published.get() && accepts(payload)) result.complete(payload)
+                override fun message(topic: String, payload: ByteArray, retained: Boolean) {
+                    // A retained status is the broker's old copy, not the AC answering.
+                    if (topic == awaiting && !retained && published.get() && accepts(payload)) result.complete(payload)
                 }
 
                 override fun authRejected() {

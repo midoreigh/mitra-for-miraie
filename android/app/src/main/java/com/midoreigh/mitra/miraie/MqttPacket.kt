@@ -37,7 +37,11 @@ object MqttPacket {
     /** A packet received from the broker. */
     sealed interface Incoming {
         data class ConnAck(val returnCode: Int) : Incoming
-        class Publish(val topic: String, val payload: ByteArray) : Incoming
+        /**
+         * [retained]: the broker is replaying the last message it kept for the topic, which may
+         * be old, rather than passing on a new one.
+         */
+        class Publish(val topic: String, val payload: ByteArray, val retained: Boolean = false) : Incoming
         data object SubAck : Incoming
         data object PingResponse : Incoming
         data class Other(val type: Int) : Incoming
@@ -92,7 +96,7 @@ object MqttPacket {
                         val topic = String(body, 2, topicLength, Charsets.UTF_8)
                         val hasPacketId = (header shr 1) and 0x03 > 0
                         val start = minOf(body.size, 2 + topicLength + if (hasPacketId) 2 else 0)
-                        Incoming.Publish(topic, body.copyOfRange(start, body.size))
+                        Incoming.Publish(topic, body.copyOfRange(start, body.size), retained = header and 0x01 != 0)
                     }
                 }
             }

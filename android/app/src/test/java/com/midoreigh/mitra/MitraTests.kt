@@ -74,5 +74,19 @@ class MitraTests {
         assertEquals("a/status", incoming.topic)
         assertEquals("""{"ps":"on"}""", String(incoming.payload))
         assertEquals(MqttPacket.Incoming.PingResponse, packets[1])
+        assertFalse(incoming.retained)
+    }
+
+    /**
+     * The broker replays the last status it kept when subscribing, even if the AC has since lost
+     * power; the retain flag tells it apart from a fresh one.
+     */
+    @Test fun decodesRetainFlag() {
+        val packet = MqttPacket.publish("a/status", "{}".toByteArray())
+        packet[0] = (packet[0].toInt() or 0x01).toByte()
+        val incoming = MqttPacket.Decoder().append(packet).single() as MqttPacket.Incoming.Publish
+        assertEquals("a/status", incoming.topic)
+        assertEquals("{}", String(incoming.payload))
+        assertTrue(incoming.retained)
     }
 }

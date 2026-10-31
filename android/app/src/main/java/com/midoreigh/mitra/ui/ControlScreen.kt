@@ -99,9 +99,12 @@ fun ControlScreen(ui: UiState, store: ACStore, openSettings: () -> Unit) {
     BoxWithConstraints(Modifier.fillMaxSize().background(MitraColors.night)) {
         // The AC and its air fill the whole screen, the air flowing on behind the controls' glass.
         val sceneTop = top + 70.dp
-        GraphiteBackdrop(state.isOn, Modifier.fillMaxSize())
+        // Offline, nothing the AC last reported can be trusted, so it's drawn idle: no air and a
+        // dark display, with only the red light on.
+        val drawn = if (state.isOnline) state else state.copy(isOn = false)
+        GraphiteBackdrop(drawn.isOn, Modifier.fillMaxSize())
         ACUnitScene(
-            state,
+            drawn,
             Modifier
                 .fillMaxSize()
                 .padding(top = sceneTop)
@@ -133,11 +136,18 @@ fun ControlScreen(ui: UiState, store: ACStore, openSettings: () -> Unit) {
     }
 }
 
+/** Controls fade a little while the AC is off, and a lot while it's offline, when they can't be used. */
+private fun controlAlpha(state: ACState, off: Float): Float = when {
+    !state.isOnline -> 0.35f
+    state.isOn -> 1f
+    else -> off
+}
+
 /** Every control on one frosted glass panel at the bottom, within thumb reach. */
 @Composable
 private fun ControlPanel(ui: UiState, store: ACStore) {
     val state = ui.state
-    val controlsAlpha by animateFloatAsState(if (state.isOn) 1f else 0.55f, tween(300), label = "controls")
+    val controlsAlpha by animateFloatAsState(controlAlpha(state, off = 0.55f), tween(300), label = "controls")
     val shape = RoundedCornerShape(28.dp)
     Column(
         Modifier
@@ -284,7 +294,7 @@ private fun DeviceName(ui: UiState, store: ACStore, modifier: Modifier) {
 /** The set temperature, large and centred, with the room temperature under it and − / + either side. */
 @Composable
 private fun Temperature(state: ACState, canControl: Boolean, step: (Double) -> Unit) {
-    val alpha by animateFloatAsState(if (state.isOn) 1f else 0.6f, tween(300), label = "temperature")
+    val alpha by animateFloatAsState(controlAlpha(state, off = 0.6f), tween(300), label = "temperature")
     val enabled = canControl && state.mode.usesSetpoint
     Row(
         Modifier.fillMaxWidth().alpha(alpha),
@@ -341,7 +351,7 @@ private fun BigText(text: String, modifier: Modifier = Modifier) {
 /** Up/down and left/right louvers: swing, or one of five fixed positions. */
 @Composable
 private fun Louvers(state: ACState, canControl: Boolean, store: ACStore) {
-    val alpha by animateFloatAsState(if (state.isOn) 1f else 0.6f, tween(300), label = "louvers")
+    val alpha by animateFloatAsState(controlAlpha(state, off = 0.6f), tween(300), label = "louvers")
     Column(Modifier.fillMaxWidth().alpha(alpha), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Segments(
             values = listOf(Louver.SWING) + Louver.positions.toList(),

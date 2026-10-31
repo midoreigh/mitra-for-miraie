@@ -247,9 +247,9 @@ class ACStore private constructor(private val context: Context) {
                 scope.launch { connectionChanged(state) }
             }
 
-            override fun message(topic: String, payload: ByteArray) {
+            override fun message(topic: String, payload: ByteArray, retained: Boolean) {
                 val json = runCatching { JSONObject(String(payload)).toMap() }.getOrNull() ?: return
-                scope.launch { received(topic, json) }
+                scope.launch { received(topic, json, retained) }
             }
 
             override fun authRejected() {
@@ -283,7 +283,7 @@ class ACStore private constructor(private val context: Context) {
         }
     }
 
-    private fun received(topic: String, fields: Map<String, Any?>) {
+    private fun received(topic: String, fields: Map<String, Any?>, retained: Boolean) {
         val ui = current
         if (ui.isPreviewing) return
         val device = ui.devices.firstOrNull { topic.startsWith(it.topicBase + "/") } ?: return
@@ -294,7 +294,9 @@ class ACStore private constructor(private val context: Context) {
         for ((command, _) in waiting) command.fields.keys.forEach(json::remove)
         pending[device.id] = waiting
         var state = (ui.states[device.id] ?: ACState()).applying(json) // connectionStatus carries just "onlineStatus"
-        if (topic == device.statusTopic) state = state.copy(isOnline = true)
+        // A fresh status message means the AC is up. A retained one is only the last status the
+        // broker kept, replayed on connecting, and is there even after the AC has lost power.
+        if (topic == device.statusTopic && !retained) state = state.copy(isOnline = true)
         update(state, device)
         val learned = shared.learnCapabilities(state, device.id)
         _ui.update { it.copy(capabilities = it.capabilities + (device.id to learned)) }

@@ -88,8 +88,8 @@ class MirAIeService(context: Context) {
             }
         }
         val json = reply?.let { runCatching { JSONObject(String(it)).toMap() }.getOrNull() }
-        state = if (json != null) state.applying(json) else state.applying(*commands.toTypedArray())
-        state = state.copy(isOnline = true)
+        // Only an answer from the AC shows it's online; without one, the command may still have worked.
+        state = if (json != null) state.applying(json).copy(isOnline = true) else state.applying(*commands.toTypedArray())
         shared.save(state, device.id)
         return state
     }

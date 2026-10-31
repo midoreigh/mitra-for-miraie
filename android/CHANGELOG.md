@@ -4,6 +4,17 @@ What's new in each release of Mitra for MirAIe for Android. It's versioned separ
 Mac app, and released under tags named `android-v<version>`. Versions follow
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixes
+
+- **An AC without power now shows as offline.** During a power cut, Mitra could still show your
+  AC as online. It now shows it offline within about a minute, and online again a few seconds
+  after the power comes back. The widget, Quick Settings tile and shortcuts only count the AC as
+  online when it actually answers.
+- **Offline at a glance.** While your AC can't be reached, it's drawn idle with its red light and
+  no air, and the temperature and every control fade, so it's clear nothing can be changed.
+
 ## [1.0.0-rc.1] - 2026-10-31
 
 The first release candidate of Mitra for Android. Try it and tell us what you think before
@@ -32,4 +43,5 @@ The first release candidate of Mitra for Android. Try it and tell us what you th
 - Requires Android 8.0 or later.
 - This is a release candidate: it may still have rough edges.
 
+[Unreleased]: https://github.com/midoreigh/mitra-for-miraie/compare/android-v1.0.0-rc.1...HEAD
 [1.0.0-rc.1]: https://github.com/midoreigh/mitra-for-miraie/releases/tag/android-v1.0.0-rc.1
