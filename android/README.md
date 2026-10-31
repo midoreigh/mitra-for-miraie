@@ -23,5 +23,9 @@ Builds with JDK 21 or later (Android Studio's bundled JDK works:
 - `ui/`: the animated AC hero and controls.
 - `widget/`: home-screen widget and Quick Settings tile.
 
+`scripts/make-showcase.swift` builds the README's showcase images from full-resolution S24 Ultra
+screenshots, in the Mac images' style: each in a phone frame on a navy card, with a headline and a
+description line.
+
 The big temperature uses [Nunito](https://github.com/googlefonts/nunito), under the SIL Open
 Font License (`licenses/Nunito-OFL.txt`).

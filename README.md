@@ -12,6 +12,8 @@
 <p align="center">
   <a href="https://github.com/midoreigh/mitra-for-miraie/releases/latest"><strong>Download for Mac</strong></a>
   ·
+  <a href="https://github.com/midoreigh/mitra-for-miraie/releases/tag/android-v1.0.0-rc.1"><strong>Download for Android</strong></a> (release candidate)
+  ·
   <a href="#install">Install guide</a>
   ·
   <a href="#faq">FAQ</a>
@@ -22,6 +24,7 @@
   <a href="https://github.com/midoreigh/mitra-for-miraie/actions/workflows/ci.yml"><img src="https://github.com/midoreigh/mitra-for-miraie/actions/workflows/ci.yml/badge.svg?event=pull_request" alt="CI"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="License: MIT"></a>
   <img src="https://img.shields.io/badge/macOS-26%2B-black" alt="macOS 26 or later">
+  <img src="https://img.shields.io/badge/Android-8.0%2B-3DDC84" alt="Android 8.0 or later">
 </p>
 
 <p align="center">
@@ -74,6 +77,26 @@ Preview Mode, Settings, Sign Out and Quit.
 <p align="center">
   <img src="docs/media/showcase-converti-settings-v4.png" width="620" alt="Choosing a Converti7 cooling level, and Settings, where you enable the features your AC has">
 </p>
+
+## On Android
+
+The same living AC and one-tap controls, made for your phone. The AC and its air fill the
+screen, and every control sits on a glass panel at the bottom, within thumb reach. There's a
+home-screen widget, a Quick Settings tile for power, and shortcuts when you long-press the app
+icon. The Android app is a release candidate; try it and tell us what you think.
+
+<p align="center">
+  <img src="docs/media/showcase-android-panel-v1.png" alt="Three Android screens: Cool mode with every setting one tap away, Auto mode with purple air at Medium fan speed, and Preview Mode in Dry with the AC shown offline">
+</p>
+
+<p align="center">
+  <img src="docs/media/showcase-android-converti-settings-v1.png" width="620" alt="Choosing a Converti7 cooling level on Android, and Settings, where you enable the features your AC has">
+</p>
+
+Download **Mitra-for-MirAIe-&lt;version&gt;.apk** from the
+[Android release](https://github.com/midoreigh/mitra-for-miraie/releases/tag/android-v1.0.0-rc.1) on your phone and open it. Android asks you to allow installing apps
+from your browser or Files app, and Google Play Protect may ask you to confirm, because Mitra
+isn't on Google Play. Requires Android 8.0 or later.
 
 ## Install
 
