@@ -55,6 +55,8 @@ struct SettingsView: View {
                 }
             }
 
+            SleepProfilesSection()
+
             Section {
                 VStack(alignment: .leading, spacing: 6) {
                     ForEach(Self.siriExamples, id: \.self) { phrase in

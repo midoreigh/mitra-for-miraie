@@ -56,6 +56,10 @@ struct ControlView: View {
                 offlineNotice
                     .padding(.top, 152)
                     .transition(.opacity)
+            } else if !scheduleLabels.isEmpty {
+                schedule
+                    .padding(.top, 156)
+                    .transition(.opacity)
             }
 
             VStack(spacing: 0) {
@@ -188,6 +192,43 @@ struct ControlView: View {
         .opacity(controlOpacity(off: 0.6))
     }
 
+    /// What the AC will do by itself: its timers and the sleep profile it's running.
+    private var scheduleLabels: [(symbol: String, text: String)] {
+        var labels: [(String, String)] = []
+        if state.sleepProfile != nil {
+            let known = store.runningSleepProfile
+            let name = known?.name ?? "Sleep"
+            let hour = state.sleepHour.map { hour in
+                known.map { " · hour \(min(hour + 1, $0.temperatures.count)) of \($0.temperatures.count)" } ?? " · hour \(hour + 1)"
+            } ?? ""
+            labels.append(("moon.zzz", name + hour))
+        }
+        if let off = state.offTimer, off > Date() { labels.append(("timer", "Off at \(Self.time(off))")) }
+        if let on = state.onTimer, on > Date() { labels.append(("timer", "On at \(Self.time(on))")) }
+        return labels
+    }
+
+    private var schedule: some View {
+        HStack(spacing: 6) {
+            ForEach(scheduleLabels, id: \.text) { label in
+                Label(label.text, systemImage: label.symbol)
+                    .font(.caption.weight(.medium))
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 5)
+                    .glassEffect(.regular, in: .capsule)
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .animation(.snappy, value: scheduleLabels.map(\.text))
+    }
+
+    /// "9:20 PM", or "Tue 7:00 AM" when it's not in the next day.
+    private static func time(_ date: Date) -> String {
+        date.timeIntervalSinceNow < 20 * 3600
+            ? date.formatted(date: .omitted, time: .shortened)
+            : date.formatted(.dateTime.weekday(.abbreviated).hour().minute())
+    }
+
     // MARK: - Controls
 
     private var offlineNotice: some View {
@@ -250,6 +291,14 @@ struct ControlView: View {
                           tint: FeatureColor.bulb, icon: FeatureColor.bulbIcon) {
                 store.send(.display(!state.display))
             }
+            PopoverToggle(title: "Timer", symbol: "timer", isOn: state.offTimer != nil || state.onTimer != nil,
+                          tint: FeatureColor.timer) {
+                TimerPopover(state: state).environment(store)
+            }
+            PopoverToggle(title: "Sleep", symbol: "moon.zzz", isOn: state.sleepProfile != nil,
+                          tint: FeatureColor.sleep) {
+                SleepPopover().environment(store)
+            }
         }
     }
 
@@ -298,6 +347,28 @@ private enum FeatureColor {
     static let nanoe = Color(red: 0.42, green: 0.32, blue: 0.82)
     static let bulb = Color(red: 1.0, green: 0.74, blue: 0.36)
     static let bulbIcon = Color(red: 0.3, green: 0.17, blue: 0.0)
+    static let timer = Color(red: 0.16, green: 0.4, blue: 0.78)
+    static let sleep = Color(red: 0.3, green: 0.26, blue: 0.62)
+}
+
+/// A feature button that opens a popover, lit while what it sets is active.
+private struct PopoverToggle<Content: View>: View {
+    let title: String
+    let symbol: String
+    let isOn: Bool
+    let tint: Color
+    @ViewBuilder let content: () -> Content
+    @State private var isPresented = false
+
+    var body: some View {
+        Button { isPresented.toggle() } label: {
+            FeatureIcon(symbol: symbol, isOn: isOn, tint: tint)
+        }
+        .buttonStyle(.plain)
+        .glassEffect(.regular, in: .capsule)
+        .hoverHint("\(title): \(isOn ? "on" : "off")")
+        .popover(isPresented: $isPresented, arrowEdge: .bottom, content: content)
+    }
 }
 
 /// One feature button: an icon, filled in the feature's colour while on.

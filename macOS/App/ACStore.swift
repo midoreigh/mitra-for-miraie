@@ -55,6 +55,17 @@ final class ACStore {
     var selected: Device? { devices.first { $0.id == selectedId } ?? devices.first }
     var state: ACState { selected.flatMap { states[$0.id] } ?? ACState() }
     var selectedCapabilities: ACCapabilities { selected.flatMap { capabilities[$0.id] } ?? ACCapabilities() }
+
+    /// The user's own sleep profiles, shared by every AC.
+    var sleepProfiles = SharedStore.shared.sleepProfiles {
+        didSet { SharedStore.shared.sleepProfiles = sleepProfiles }
+    }
+    /// The AC's own Gentle profile, then the user's.
+    var allSleepProfiles: [SleepProfile] { [.gentle] + sleepProfiles }
+    /// The profile the selected AC is running, if Mitra knows it.
+    var runningSleepProfile: SleepProfile? {
+        state.sleepProfile.flatMap { id in allSleepProfiles.first { $0.id == id } }
+    }
     var canControl: Bool { selected != nil && state.isOnline }
 
     private let service = MirAIeService.shared
@@ -190,6 +201,24 @@ final class ACStore {
                 }
             }
         }
+    }
+
+    func save(_ profile: SleepProfile) {
+        if let index = sleepProfiles.firstIndex(where: { $0.id == profile.id }) {
+            sleepProfiles[index] = profile
+        } else {
+            sleepProfiles.append(profile)
+        }
+    }
+
+    func deleteSleepProfile(id: String) {
+        sleepProfiles.removeAll { $0.id == id }
+    }
+
+    /// Stops whichever profile the selected AC is running, even one started from the MirAIe app.
+    func stopSleep() {
+        guard let id = state.sleepProfile else { return }
+        send(.stopSleep(id: id, temperatures: runningSleepProfile?.wireTemperatures ?? []))
     }
 
     /// In preview mode, pretends the selected AC dropped off (or came back on) the network,
