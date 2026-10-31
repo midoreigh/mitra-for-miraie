@@ -30,10 +30,6 @@
 
 https://github.com/user-attachments/assets/0306e648-c7ce-4be3-b48c-fe29fb07bad0
 
-<p align="center">
-  <img src="docs/media/showcase-panel-v4.png" alt="Three views of the panel: Cool mode with every setting one click away, the panel open under the menu bar in Auto mode, and Preview Mode in Dry, for trying the app without signing in">
-</p>
-
 ## Why you'll like it
 
 **Go straight to the setting you want.** In the MirAIe app, the mode is a single button you tap
@@ -59,6 +55,10 @@ straight away. A light on the drawn unit tells you whether your AC is online.
 
 **Just ask Siri, on your Mac.** "Turn on the AC in Mitra for MirAIe." "Make it cooler with Mitra for MirAIe."
 Every action also works in Shortcuts, so your AC can switch on before you get home.
+
+<p align="center">
+  <img src="docs/media/showcase-panel-v4.png" alt="Three views of the panel: Cool mode with every setting one click away, the panel open under the menu bar in Auto mode, and Preview Mode in Dry, for trying the app without signing in">
+</p>
 
 ## Everything you can do
 
