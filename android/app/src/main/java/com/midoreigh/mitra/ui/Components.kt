@@ -47,6 +47,9 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.layout.boundsInWindow
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -59,14 +62,15 @@ import androidx.compose.ui.unit.IntRect
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.roundToIntRect
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupPositionProvider
 import com.midoreigh.mitra.model.Louver
-import kotlinx.coroutines.delay
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
+import kotlinx.coroutines.delay
 
 /**
  * Makes something tappable, with a hint naming it on long-press: shown above it (below only
@@ -80,6 +84,9 @@ fun Modifier.hinted(
     role: Role = Role.Button,
     onClick: () -> Unit,
 ): Modifier = this
+    // The hint's popup belongs to whichever layout called rememberHint (often the whole bar),
+    // so it's placed from this control's own bounds instead.
+    .onGloballyPositioned { hintState.anchor = it.boundsInWindow().roundToIntRect() }
     .semantics { contentDescription = hint }
     .combinedClickable(
         enabled = enabled,
@@ -92,6 +99,8 @@ fun Modifier.hinted(
 class HintState {
     var visible by mutableStateOf(false)
         private set
+    /** The control's bounds in the window, where the hint points. */
+    var anchor: IntRect? = null
     private var shown = 0
     var pending by mutableStateOf(0)
         private set
@@ -111,13 +120,14 @@ class HintState {
 fun rememberHint(text: String): HintState {
     val state = remember { HintState() }
     val haptics = LocalHapticFeedback.current
+    val gap = with(LocalDensity.current) { 8.dp.roundToPx() }
     if (state.visible) {
         LaunchedEffect(state.pending) {
             haptics.performHapticFeedback(HapticFeedbackType.LongPress)
             delay(1_800)
             state.hide()
         }
-        Popup(popupPositionProvider = AboveProvider, onDismissRequest = state::hide) {
+        Popup(popupPositionProvider = remember(state, gap) { AboveProvider(state, gap) }, onDismissRequest = state::hide) {
             Text(
                 text,
                 color = Color.White,
@@ -132,13 +142,15 @@ fun rememberHint(text: String): HintState {
     return state
 }
 
-private object AboveProvider : PopupPositionProvider {
+/** Centres the hint just above its control, or below when there's no room above. */
+private class AboveProvider(private val state: HintState, private val gap: Int) : PopupPositionProvider {
     override fun calculatePosition(anchorBounds: IntRect, windowSize: IntSize, layoutDirection: LayoutDirection, popupContentSize: IntSize): IntOffset {
-        val gap = 12
-        val x = (anchorBounds.center.x - popupContentSize.width / 2)
-            .coerceIn(16, (windowSize.width - popupContentSize.width - 16).coerceAtLeast(16))
-        val above = anchorBounds.top - popupContentSize.height - gap
-        val y = if (above >= 0) above else anchorBounds.bottom + gap
+        val control = state.anchor ?: anchorBounds
+        val margin = gap * 2
+        val x = (control.center.x - popupContentSize.width / 2)
+            .coerceIn(margin, (windowSize.width - popupContentSize.width - margin).coerceAtLeast(margin))
+        val above = control.top - popupContentSize.height - gap
+        val y = if (above >= 0) above else control.bottom + gap
         return IntOffset(x, y)
     }
 }
