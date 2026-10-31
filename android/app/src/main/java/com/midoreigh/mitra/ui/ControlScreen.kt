@@ -80,6 +80,19 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.animation.core.MutableTransitionState
+import androidx.compose.animation.scaleIn
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntRect
+import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.window.Popup
+import androidx.compose.ui.window.PopupPositionProvider
+import androidx.compose.ui.window.PopupProperties
 import com.midoreigh.mitra.model.ACCommand
 import com.midoreigh.mitra.model.ACMode
 import com.midoreigh.mitra.model.ACState
@@ -470,7 +483,10 @@ private fun Features(state: ACState, ui: UiState, store: ACStore) {
     }
 }
 
-/** The Converti7 button; opens a menu of cooling levels. */
+/**
+ * The Converti7 button. It opens a glass strip just above it with every cooling level in one
+ * row, like the fan and mode bars; one tap picks a level and closes it.
+ */
 @Composable
 private fun ConvertiButton(level: Int, enabled: Boolean, modifier: Modifier, select: (Int) -> Unit) {
     var open by remember { mutableStateOf(false) }
@@ -478,17 +494,68 @@ private fun ConvertiButton(level: Int, enabled: Boolean, modifier: Modifier, sel
     Box(modifier) {
         FeatureButton(Icons.Rounded.Adjust, if (isOn) "Converti7: $level%" else "Converti7: off",
             isOn, MitraColors.converti, Modifier.fillMaxWidth(), enabled) { open = true }
-        DropdownMenu(open, onDismissRequest = { open = false }) {
-            Text("Converti7 cooling", fontSize = 12.sp, color = MitraColors.secondaryText,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp))
-            (listOf(Converti.OFF) + Converti.levels.reversed()).forEach { value ->
-                DropdownMenuItem(
-                    text = { Text(if (value == Converti.OFF) "Off" else "$value%") },
-                    trailingIcon = { if (value == level) Icon(Icons.Rounded.Check, null) },
-                    onClick = { open = false; select(value) },
-                )
+        if (open) {
+            val gap = with(LocalDensity.current) { 10.dp.roundToPx() }
+            Popup(
+                popupPositionProvider = remember(gap) { StripAbove(gap) },
+                onDismissRequest = { open = false },
+                properties = PopupProperties(focusable = true),
+            ) {
+                ConvertiStrip(level) { open = false; select(it) }
             }
         }
+    }
+}
+
+@Composable
+private fun ConvertiStrip(level: Int, select: (Int) -> Unit) {
+    val shown = remember { MutableTransitionState(false) }.apply { targetState = true }
+    AnimatedVisibility(
+        shown,
+        enter = fadeIn(tween(150)) + scaleIn(tween(200), initialScale = 0.92f, transformOrigin = TransformOrigin(0.5f, 1f)),
+    ) {
+        val shape = RoundedCornerShape(26.dp)
+        Column(
+            Modifier
+                .padding(horizontal = 12.dp)
+                .fillMaxWidth()
+                .background(Color(0xFF161A26), shape)
+                .border(1.dp, MitraColors.glassBorder, shape)
+                .padding(start = 8.dp, end = 8.dp, top = 12.dp, bottom = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Text("Converti7 cooling", color = MitraColors.secondaryText, fontSize = 13.sp, fontWeight = FontWeight.Medium,
+                modifier = Modifier.padding(start = 10.dp))
+            Row(Modifier.fillMaxWidth().height(44.dp).glass().padding(3.dp)) {
+                (listOf(Converti.OFF) + Converti.levels).forEach { value ->
+                    val selected = value == level
+                    Box(
+                        Modifier
+                            .weight(1f)
+                            .fillMaxHeight()
+                            .clip(CircleShape)
+                            .background(if (selected) MitraColors.converti else Color.Transparent, CircleShape)
+                            .semantics { this.selected = selected }
+                            .clickable(onClickLabel = if (value == Converti.OFF) "Converti7 off" else "Converti7 $value%") { select(value) },
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text(
+                            if (value == Converti.OFF) "Off" else "$value%",
+                            color = if (selected) Color.White else Color.White.copy(alpha = 0.8f),
+                            fontSize = 13.sp, fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium, maxLines = 1,
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+/** Places a full-width strip just above its button, or below when there's no room above. */
+private class StripAbove(private val gap: Int) : PopupPositionProvider {
+    override fun calculatePosition(anchorBounds: IntRect, windowSize: IntSize, layoutDirection: LayoutDirection, popupContentSize: IntSize): IntOffset {
+        val above = anchorBounds.top - popupContentSize.height - gap
+        return IntOffset((windowSize.width - popupContentSize.width) / 2, if (above >= 0) above else anchorBounds.bottom + gap)
     }
 }
 
