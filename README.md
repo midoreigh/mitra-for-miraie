@@ -18,8 +18,6 @@
 </p>
 
 <p align="center">
-  <a href="https://mitra.midoreigh.com"><strong>Website</strong></a>
-  ·
   <a href="https://github.com/midoreigh/mitra-for-miraie/releases/latest"><strong>Download for Mac</strong></a>
   ·
   <a href="https://github.com/midoreigh/mitra-for-miraie/releases/tag/android-v1.0.2"><strong>Download for Android</strong></a>
