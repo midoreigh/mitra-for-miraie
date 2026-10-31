@@ -6,6 +6,10 @@ Mac app, and released under tags named `android-v<version>`. Versions follow
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-10-31
+
+The first full release of Mitra for Android, now with timers and sleep profiles.
+
 ### What's new
 
 - **Timers.** Tap Timer to have your AC turn off later, say in an hour, or turn on in the
@@ -55,5 +59,6 @@ The first release candidate of Mitra for Android. Try it and tell us what you th
 - Requires Android 8.0 or later.
 - This is a release candidate: it may still have rough edges.
 
-[Unreleased]: https://github.com/midoreigh/mitra-for-miraie/compare/android-v1.0.0-rc.1...HEAD
+[Unreleased]: https://github.com/midoreigh/mitra-for-miraie/compare/android-v1.0.0...HEAD
+[1.0.0]: https://github.com/midoreigh/mitra-for-miraie/compare/android-v1.0.0-rc.1...android-v1.0.0
 [1.0.0-rc.1]: https://github.com/midoreigh/mitra-for-miraie/releases/tag/android-v1.0.0-rc.1
