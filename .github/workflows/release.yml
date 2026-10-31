@@ -49,13 +49,14 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           version="${GITHUB_REF_NAME#v}"
-          # This version's section of the changelog, then how to install.
-          awk -v v="$version" '$0 ~ "^## \\[" v "\\]" {on=1; next} /^## \[|^\[/ {on=0} on' CHANGELOG.md > notes.md
+          # Who it's for, this version's section of the changelog, then how to install.
+          cp .github/release-header.md notes.md
+          awk -v v="$version" '$0 ~ "^## \\[" v "\\]" {on=1; next} /^## \[|^\[/ {on=0} on' CHANGELOG.md >> notes.md
           cat .github/release-install.md >> notes.md
           gh release create "$GITHUB_REF_NAME" \
             macOS/build/release/Mitra-for-MirAIe-$version.dmg \
             macOS/build/release/Mitra-for-MirAIe-$version.dmg.sha256 \
-            --title "Mitra for MirAIe $version" --notes-file notes.md
+            --title "Mitra for Mac $version" --notes-file notes.md
 
   android:
     name: Build and publish the Android APK
@@ -102,11 +103,12 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           version="${GITHUB_REF_NAME#android-v}"
-          awk -v v="$version" '$0 ~ "^## \\[" v "\\]" {on=1; next} /^## \[|^\[/ {on=0} on' android/CHANGELOG.md > notes.md
+          cp .github/release-header-android.md notes.md
+          awk -v v="$version" '$0 ~ "^## \\[" v "\\]" {on=1; next} /^## \[|^\[/ {on=0} on' android/CHANGELOG.md >> notes.md
           cat .github/release-install-android.md >> notes.md
           prerelease=""
           [[ "$version" == *-* ]] && prerelease="--prerelease"
           gh release create "$GITHUB_REF_NAME" \
             "android/Mitra-for-MirAIe-$version.apk" "android/Mitra-for-MirAIe-$version.apk.sha256" \
-            --title "Mitra for MirAIe for Android $version" --notes-file notes.md \
+            --title "Mitra for Android $version" --notes-file notes.md \
             --latest=false $prerelease
