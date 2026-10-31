@@ -301,11 +301,11 @@ struct ControlView: View {
     /// ACs offer them.
     private var schedules: some View {
         HStack(spacing: 8) {
-            ScheduleButton(title: "Timer", detail: timerDetail, symbol: "timer",
+            ScheduleButton(title: "Timer", detail: timerDetail, hint: timerHint, symbol: "timer",
                            isOn: state.offTimer != nil || state.onTimer != nil, tint: FeatureColor.timer) {
                 TimerPopover(state: state).environment(store)
             }
-            ScheduleButton(title: "Sleep", detail: sleepDetail, symbol: "bed.double",
+            ScheduleButton(title: "Sleep", detail: sleepDetail, hint: sleepHint, symbol: "bed.double",
                            isOn: state.sleepProfile != nil, tint: FeatureColor.sleep) {
                 SleepPopover().environment(store)
             }
@@ -317,6 +317,19 @@ struct ControlView: View {
         let timers = [state.offTimer.map { ("Off", $0) }, state.onTimer.map { ("On", $0) }].compactMap(\.self)
         guard let next = timers.min(by: { $0.1 < $1.1 }) else { return "Turn on or off later" }
         return "\(next.0) at \(Self.time(next.1))"
+    }
+
+    /// Every timer that's set, or what the button is for.
+    private var timerHint: String {
+        let timers = [state.offTimer.map { "Off at \(Self.time($0))" }, state.onTimer.map { "On at \(Self.time($0))" }]
+            .compactMap(\.self)
+        return timers.isEmpty ? "Turn the AC off or on at a set time" : timers.joined(separator: " · ")
+    }
+
+    private var sleepHint: String {
+        guard state.sleepProfile != nil else { return "Start a sleep profile: a temperature for each hour of the night" }
+        guard let profile = store.runningSleepProfile else { return "A sleep profile started in the MirAIe app is on" }
+        return "\(profile.name): \(SleepProfile.progress(profile, hour: state.sleepHour).lowercased())"
     }
 
     private var sleepDetail: String {
@@ -378,6 +391,7 @@ private enum FeatureColor {
 private struct ScheduleButton<Content: View>: View {
     let title: String
     let detail: String
+    let hint: String
     let symbol: String
     let isOn: Bool
     let tint: Color
@@ -416,6 +430,7 @@ private struct ScheduleButton<Content: View>: View {
         .glassEffect(.regular.interactive(), in: .capsule)
         .animation(.snappy, value: isOn)
         .animation(.snappy, value: detail)
+        .hoverHint(hint)
         .popover(isPresented: $isPresented, arrowEdge: .bottom, content: content)
     }
 }
