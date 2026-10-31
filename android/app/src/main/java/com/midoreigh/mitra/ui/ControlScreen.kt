@@ -391,7 +391,7 @@ private fun FanBar(state: ACState, enabled: Boolean, select: (FanSpeed) -> Unit)
         when (speed) {
             FanSpeed.AUTO -> FanAutoGlyph(color)
             FanSpeed.MEDIUM -> WindCircleGlyph(color)
-            FanSpeed.HIGH -> SpinningFanGlyph(color)
+            FanSpeed.HIGH -> TornadoGlyph(color)
             else -> Icon(speed.icon, null, tint = color, modifier = Modifier.size(21.dp))
         }
     }

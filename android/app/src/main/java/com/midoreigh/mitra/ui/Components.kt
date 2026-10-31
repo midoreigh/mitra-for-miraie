@@ -340,20 +340,41 @@ fun WindCircleGlyph(color: Color) {
     }
 }
 
-/** Fan blades with motion arcs sweeping round them: a fan at full speed, for high fan speed. */
+/**
+ * A tornado for high fan speed: curved bands, each the near side of a spinning ring, that
+ * narrow and sway down to a tail. (Straight bars read as a funnel or a filter.)
+ */
 @Composable
-fun SpinningFanGlyph(color: Color) {
-    Box(Modifier.size(22.dp), contentAlignment = Alignment.Center) {
-        Box(Modifier.size(14.dp)) { FanBlades(color) }
-        Canvas(Modifier.fillMaxSize()) {
-            val stroke = Stroke(1.7.dp.toPx(), cap = StrokeCap.Round)
-            val inset = stroke.width / 2
-            val arcSize = Size(size.width - stroke.width, size.height - stroke.width)
-            // Two sweeping arcs on opposite sides, so it reads as turning.
-            listOf(195f to 75f, 15f to 75f).forEach { (startAngle, sweep) ->
-                drawArc(color, startAngle, sweep, false, Offset(inset, inset), arcSize, style = stroke)
-            }
+fun TornadoGlyph(color: Color) {
+    Canvas(Modifier.size(22.dp)) {
+        val stroke = Stroke(1.8.dp.toPx(), cap = StrokeCap.Round)
+        val w = size.width
+        val h = size.height
+        // Each band's centre, width and height as fractions of the glyph, top to bottom.
+        val bands = listOf(
+            Triple(0.50f, 0.94f, 0.22f),
+            Triple(0.55f, 0.70f, 0.18f),
+            Triple(0.60f, 0.48f, 0.15f),
+            Triple(0.55f, 0.30f, 0.12f),
+        )
+        bands.forEachIndexed { i, (cx, bw, bh) ->
+            val top = h * (0.04f + i * 0.2f)
+            drawArc(
+                color, startAngle = 8f, sweepAngle = 164f, useCenter = false,
+                topLeft = Offset(w * (cx - bw / 2), top), size = Size(w * bw, h * bh), style = stroke,
+            )
         }
+        // The top band's far side too, so the top reads as the cloud's open mouth.
+        drawArc(
+            color.copy(alpha = color.alpha * 0.55f), startAngle = 195f, sweepAngle = 150f, useCenter = false,
+            topLeft = Offset(w * 0.03f, h * 0.04f), size = Size(w * 0.94f, h * 0.22f), style = stroke,
+        )
+        // The tail, curling down to the ground.
+        val tail = Path().apply {
+            moveTo(w * 0.52f, h * 0.76f)
+            quadraticTo(w * 0.40f, h * 0.88f, w * 0.48f, h * 0.97f)
+        }
+        drawPath(tail, color, style = stroke)
     }
 }
 
