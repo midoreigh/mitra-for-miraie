@@ -28,6 +28,8 @@
   <img src="https://img.shields.io/badge/Android-8.0%2B-3DDC84" alt="Android 8.0 or later">
 </p>
 
+https://github.com/user-attachments/assets/0306e648-c7ce-4be3-b48c-fe29fb07bad0
+
 <p align="center">
   <img src="docs/media/showcase-panel-v4.png" alt="Three views of the panel: Cool mode with every setting one click away, the panel open under the menu bar in Auto mode, and Preview Mode in Dry, for trying the app without signing in">
 </p>
@@ -57,8 +59,6 @@ straight away. A light on the drawn unit tells you whether your AC is online.
 
 **Just ask Siri, on your Mac.** "Turn on the AC in Mitra for MirAIe." "Make it cooler with Mitra for MirAIe."
 Every action also works in Shortcuts, so your AC can switch on before you get home.
-
-https://github.com/user-attachments/assets/0306e648-c7ce-4be3-b48c-fe29fb07bad0
 
 ## Everything you can do
 
