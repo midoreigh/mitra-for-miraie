@@ -28,7 +28,7 @@
   <img src="https://img.shields.io/badge/Android-8.0%2B-3DDC84" alt="Android 8.0 or later">
 </p>
 
-https://github.com/user-attachments/assets/0306e648-c7ce-4be3-b48c-fe29fb07bad0
+https://github.com/user-attachments/assets/641fbb59-b6c4-4b0b-a82d-7edefc93932f
 
 ## Why you'll like it
 
