@@ -119,13 +119,15 @@ fun ControlScreen(ui: UiState, store: ACStore, openSettings: () -> Unit) {
             Modifier
                 .fillMaxSize()
                 .then(if (fits) Modifier else Modifier.verticalScroll(rememberScrollState()))
-                .padding(start = 20.dp, end = 20.dp, top = top + 8.dp, bottom = bottom + 24.dp),
+                .padding(start = 12.dp, end = 12.dp, top = top + 8.dp, bottom = bottom + 12.dp),
         ) {
-            Header(ui, store, openSettings)
+            Box(Modifier.padding(horizontal = 4.dp)) { Header(ui, store, openSettings) }
             Spacer(Modifier.height(unitBottom - top - 56.dp + 16.dp))
             if (fits) Spacer(Modifier.weight(1f))
-            Temperature(state, ui.canControl) { delta ->
-                store.send(ACCommand.Temperature((state.setpoint + delta).coerceIn(ACState.MIN_TEMPERATURE, ACState.MAX_TEMPERATURE)))
+            Box(Modifier.padding(horizontal = 8.dp)) {
+                Temperature(state, ui.canControl) { delta ->
+                    store.send(ACCommand.Temperature((state.setpoint + delta).coerceIn(ACState.MIN_TEMPERATURE, ACState.MAX_TEMPERATURE)))
+                }
             }
             if (fits) Spacer(Modifier.weight(1f)) else Spacer(Modifier.height(24.dp))
             ControlPanel(ui, store)
@@ -145,7 +147,7 @@ private fun ControlPanel(ui: UiState, store: ACStore) {
             .clip(shape)
             .background(MitraColors.panel, shape)
             .border(1.dp, MitraColors.glassBorder, shape)
-            .padding(horizontal = 20.dp, vertical = 22.dp),
+            .padding(24.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         AnimatedVisibility(!state.isOnline, enter = expandVertically() + fadeIn(), exit = shrinkVertically() + fadeOut()) {
