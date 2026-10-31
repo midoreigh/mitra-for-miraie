@@ -315,7 +315,7 @@ struct ControlView: View {
     /// The sooner timer; both are listed under the AC.
     private var timerDetail: String {
         let timers = [state.offTimer.map { ("Off", $0) }, state.onTimer.map { ("On", $0) }].compactMap(\.self)
-        guard let next = timers.min(by: { $0.1 < $1.1 }) else { return "Turn off later" }
+        guard let next = timers.min(by: { $0.1 < $1.1 }) else { return "Turn on or off later" }
         return "\(next.0) at \(Self.time(next.1))"
     }
 
