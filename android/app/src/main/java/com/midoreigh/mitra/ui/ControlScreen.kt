@@ -119,15 +119,13 @@ fun ControlScreen(ui: UiState, store: ACStore, openSettings: () -> Unit) {
             Modifier
                 .fillMaxSize()
                 .then(if (fits) Modifier else Modifier.verticalScroll(rememberScrollState()))
-                .padding(start = 12.dp, end = 12.dp, top = top + 8.dp, bottom = bottom + 12.dp),
+                .padding(start = 20.dp, end = 20.dp, top = top + 8.dp, bottom = bottom + 24.dp),
         ) {
-            Box(Modifier.padding(horizontal = 4.dp)) { Header(ui, store, openSettings) }
+            Header(ui, store, openSettings)
             Spacer(Modifier.height(unitBottom - top - 56.dp + 16.dp))
             if (fits) Spacer(Modifier.weight(1f))
-            Box(Modifier.padding(horizontal = 4.dp)) {
-                Temperature(state, ui.canControl) { delta ->
-                    store.send(ACCommand.Temperature((state.setpoint + delta).coerceIn(ACState.MIN_TEMPERATURE, ACState.MAX_TEMPERATURE)))
-                }
+            Temperature(state, ui.canControl) { delta ->
+                store.send(ACCommand.Temperature((state.setpoint + delta).coerceIn(ACState.MIN_TEMPERATURE, ACState.MAX_TEMPERATURE)))
             }
             if (fits) Spacer(Modifier.weight(1f)) else Spacer(Modifier.height(24.dp))
             ControlPanel(ui, store)
@@ -147,14 +145,14 @@ private fun ControlPanel(ui: UiState, store: ACStore) {
             .clip(shape)
             .background(MitraColors.panel, shape)
             .border(1.dp, MitraColors.glassBorder, shape)
-            .padding(12.dp),
-        verticalArrangement = Arrangement.spacedBy(14.dp),
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         AnimatedVisibility(!state.isOnline, enter = expandVertically() + fadeIn(), exit = shrinkVertically() + fadeOut()) {
             OfflineBanner(ui.selected?.name ?: "The AC")
         }
         Louvers(state, ui.canControl, store)
-        Column(Modifier.alpha(controlsAlpha), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+        Column(Modifier.alpha(controlsAlpha), verticalArrangement = Arrangement.spacedBy(16.dp)) {
             FanBar(state, ui.canControl) { store.send(ACCommand.Fan(it)) }
             ModeBar(state, ui, ui.canControl) { store.send(ACCommand.Mode(it)) }
             Features(state, ui, store)
@@ -341,7 +339,7 @@ private fun Temperature(state: ACState, canControl: Boolean, step: (Double) -> U
 @Composable
 private fun Louvers(state: ACState, canControl: Boolean, store: ACStore) {
     val alpha by animateFloatAsState(if (state.isOn) 1f else 0.6f, tween(300), label = "louvers")
-    Column(Modifier.fillMaxWidth().alpha(alpha), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    Column(Modifier.fillMaxWidth().alpha(alpha), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Segments(
             values = listOf(Louver.SWING) + Louver.positions.toList(),
             selection = state.verticalLouver,
@@ -349,7 +347,7 @@ private fun Louvers(state: ACState, canControl: Boolean, store: ACStore) {
             hint = { "Up/down: ${Louver.verticalLabel(it)}" },
             modifier = Modifier.fillMaxWidth(),
             enabled = canControl,
-            height = 44.dp,
+            height = 48.dp,
         ) { position, color -> LouverGlyph(vertical = true, position = position, color = color) }
         Segments(
             values = listOf(Louver.SWING) + Louver.horizontalLeftToRight,
@@ -358,7 +356,7 @@ private fun Louvers(state: ACState, canControl: Boolean, store: ACStore) {
             hint = { "Left/right: ${Louver.horizontalLabel(it)}" },
             modifier = Modifier.fillMaxWidth(),
             enabled = canControl,
-            height = 44.dp,
+            height = 48.dp,
         ) { position, color -> LouverGlyph(vertical = false, position = position, color = color) }
     }
 }
