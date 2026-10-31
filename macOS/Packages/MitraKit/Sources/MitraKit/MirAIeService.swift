@@ -107,10 +107,10 @@ public actor MirAIeService {
         }
         if let reply, let json = (try? JSONSerialization.jsonObject(with: reply)) as? [String: Any] {
             state.apply(json)
+            state.isOnline = true // the AC answered
         } else {
             commands.forEach { state.apply($0) }
         }
-        state.isOnline = true
         SharedStore.shared.save(state, for: device.id)
         return state
     }

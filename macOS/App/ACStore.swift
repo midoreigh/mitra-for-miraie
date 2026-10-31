@@ -213,10 +213,10 @@ final class ACStore {
         handlers.stateChanged = { [weak self] state in
             Task { @MainActor in self?.connectionChanged(state) }
         }
-        handlers.message = { [weak self] topic, payload in
+        handlers.message = { [weak self] topic, payload, retained in
             guard let json = (try? JSONSerialization.jsonObject(with: payload)) as? [String: Any],
                   let data = try? JSONSerialization.data(withJSONObject: json) else { return }
-            Task { @MainActor in self?.received(topic: topic, json: data) }
+            Task { @MainActor in self?.received(topic: topic, json: data, retained: retained) }
         }
         handlers.authRejected = { [weak self] in
             Task { @MainActor in await self?.connect(forceRefresh: true) }
@@ -247,7 +247,7 @@ final class ACStore {
         }
     }
 
-    private func received(topic: String, json data: Data) {
+    private func received(topic: String, json data: Data, retained: Bool) {
         guard !isPreviewing else { return }
         guard var json = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any],
               let device = devices.first(where: { topic.hasPrefix($0.topicBase + "/") }) else { return }
@@ -260,7 +260,9 @@ final class ACStore {
         pending[device.id] = waiting
         var state = states[device.id] ?? ACState()
         state.apply(json) // a connectionStatus message carries just "onlineStatus"
-        if topic == device.statusTopic { state.isOnline = true }
+        // A fresh status message means the AC is up. A retained one is only the last status the
+        // broker kept, replayed on connecting, and is there even after the AC has lost power.
+        if topic == device.statusTopic, !retained { state.isOnline = true }
         update(state, for: device)
         capabilities[device.id] = SharedStore.shared.learnCapabilities(from: state, for: device.id)
     }
