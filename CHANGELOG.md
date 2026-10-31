@@ -12,7 +12,7 @@ separately; see [its changelog](android/CHANGELOG.md).
   30 minutes to 4 hours from now. Your AC keeps the timers itself, so they work even while your
   Mac is asleep.
 - **Sleep profiles.** Choose a temperature for each hour of the night in Settings, and whether
-  the AC turns off at the end, then start the profile from the moon button. Gentle, the AC's own
+  the AC turns off at the end, then start the profile from the bed button. Gentle, the AC's own
   profile, is always there: your temperature for three hours, then a degree warmer, then two.
 - **What's coming, at a glance.** While a timer is set or a profile runs, the panel shows it
   under the AC, such as "Off at 9:20 PM" or "Night · hour 2 of 4".

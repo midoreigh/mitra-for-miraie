@@ -129,7 +129,7 @@ struct SleepPopover: View {
                 }
                 if let id = state.sleepProfile, store.runningSleepProfile == nil {
                     // Started from the MirAIe app: Mitra doesn't know its name or hours.
-                    row(SleepProfile(id: id, name: "From the MirAIe app", temperatures: [], turnsOffAtEnd: false),
+                    row(SleepProfile(id: id, name: "Sleep profile", temperatures: [], turnsOffAtEnd: false),
                         state: state)
                 }
             }
@@ -180,9 +180,11 @@ extension SleepProfile {
         return turnsOffAtEnd ? "\(temperatures), then off" : temperatures
     }
 
-    /// "Hour 2 of 3", or just "Hour 2" when the profile isn't known.
+    /// "Hour 2 of 3". For a profile started in the MirAIe app, which hour means little without
+    /// its length, so just where it came from.
     static func progress(_ profile: SleepProfile, hour: Int?) -> String {
+        if profile.temperatures.isEmpty { return "Started in the MirAIe app" }
         guard let hour else { return "Running" }
-        return profile.temperatures.isEmpty ? "Hour \(hour + 1)" : "Hour \(min(hour + 1, profile.temperatures.count)) of \(profile.temperatures.count)"
+        return "Hour \(min(hour + 1, profile.temperatures.count)) of \(profile.temperatures.count)"
     }
 }

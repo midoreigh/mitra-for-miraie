@@ -196,12 +196,14 @@ struct ControlView: View {
     private var scheduleLabels: [(symbol: String, text: String)] {
         var labels: [(String, String)] = []
         if state.sleepProfile != nil {
-            let known = store.runningSleepProfile
-            let name = known?.name ?? "Sleep"
-            let hour = state.sleepHour.map { hour in
-                known.map { " · hour \(min(hour + 1, $0.temperatures.count)) of \($0.temperatures.count)" } ?? " · hour \(hour + 1)"
-            } ?? ""
-            labels.append(("moon.zzz", name + hour))
+            // A profile started in the MirAIe app: its name and length aren't sent to the AC, so
+            // which hour it's on means little.
+            if let known = store.runningSleepProfile {
+                let hour = state.sleepHour.map { " · hour \(min($0 + 1, known.temperatures.count)) of \(known.temperatures.count)" }
+                labels.append(("bed.double", known.name + (hour ?? "")))
+            } else {
+                labels.append(("bed.double", "Sleep profile on"))
+            }
         }
         if let off = state.offTimer, off > Date() { labels.append(("timer", "Off at \(Self.time(off))")) }
         if let on = state.onTimer, on > Date() { labels.append(("timer", "On at \(Self.time(on))")) }
@@ -295,7 +297,7 @@ struct ControlView: View {
                           tint: FeatureColor.timer) {
                 TimerPopover(state: state).environment(store)
             }
-            PopoverToggle(title: "Sleep", symbol: "moon.zzz", isOn: state.sleepProfile != nil,
+            PopoverToggle(title: "Sleep", symbol: "bed.double", isOn: state.sleepProfile != nil,
                           tint: FeatureColor.sleep) {
                 SleepPopover().environment(store)
             }

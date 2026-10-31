@@ -22,7 +22,7 @@ struct SleepProfilesSection: View {
         } header: {
             Text("Sleep profiles")
         } footer: {
-            Text("Set a temperature for each hour of the night, then start the profile with the moon button in the panel. Your AC runs it by itself. Gentle is built into the AC and works from whatever temperature it's set to.")
+            Text("Set a temperature for each hour of the night, then start the profile with the bed button in the panel. Your AC runs it by itself. Gentle is built into the AC and works from whatever temperature it's set to.")
         }
         .sheet(item: $editing) { profile in
             SleepProfileEditor(profile: profile, isNew: !store.sleepProfiles.contains { $0.id == profile.id },
