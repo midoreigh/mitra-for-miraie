@@ -93,12 +93,11 @@ icon. The Android app is a release candidate; try it and tell us what you think.
   <img src="docs/media/showcase-android-converti-settings-v1.png" width="620" alt="Choosing a Converti7 cooling level on Android, and Settings, where you enable the features your AC has">
 </p>
 
-Download **Mitra-for-MirAIe-&lt;version&gt;.apk** from the
-[Android release](https://github.com/midoreigh/mitra-for-miraie/releases/tag/android-v1.0.0-rc.1) on your phone and open it. Android asks you to allow installing apps
-from your browser or Files app, and Google Play Protect may ask you to confirm, because Mitra
-isn't on Google Play. Requires Android 8.0 or later.
+See [Install on Android](#install-on-android) to get it.
 
 ## Install
+
+### Install on Mac
 
 > [!IMPORTANT]
 > **macOS will ask you to confirm Mitra: when you first open it, and again after each update.**
@@ -135,6 +134,27 @@ the new version, macOS asks you to confirm it, as described above:
 - **Open Anyway** in **System Settings ▸ Privacy & Security** (step 2).
 - **Your Mac's login password or Touch ID**, usually twice, so the new version can use your saved
   MirAIe sign-in. Choose **Always Allow** each time. This happens after every update.
+
+### Install on Android
+
+> [!NOTE]
+> Mitra isn't on Google Play, so Android asks you to confirm before installing it. That's
+> expected and safe to allow; all of the source is here to check.
+
+1. On your phone, download **Mitra-for-MirAIe-&lt;version&gt;.apk** from the
+   [Android release](https://github.com/midoreigh/mitra-for-miraie/releases/tag/android-v1.0.0-rc.1).
+2. Open it. If Android asks, allow your browser (or Files app) to **install unknown apps**, then
+   go back and tap **Install**. If Google Play Protect says it doesn't recognise the app, tap
+   **More details ▸ Install anyway**.
+3. Open Mitra for MirAIe and sign in with the mobile number or email you use in the MirAIe app, or
+   choose **Try it without an account** to look around first.
+
+Requires Android 8.0 or later. To add the widget, long-press your home screen, tap **Widgets** and
+find Mitra for MirAIe; for the power tile, edit your Quick Settings panel and drag in the AC tile.
+
+**Updating:** download the new APK from the
+[releases page](https://github.com/midoreigh/mitra-for-miraie/releases) and install it over the
+old one. You stay signed in.
 
 ## FAQ
 
