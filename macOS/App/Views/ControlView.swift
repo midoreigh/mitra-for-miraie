@@ -15,6 +15,7 @@ struct ControlView: View {
                     fanSpeeds
                     modes
                     features
+                    schedules
                 }
                 .disabled(!store.canControl)
                 .opacity(controlOpacity(off: 0.55))
@@ -293,15 +294,34 @@ struct ControlView: View {
                           tint: FeatureColor.bulb, icon: FeatureColor.bulbIcon) {
                 store.send(.display(!state.display))
             }
-            PopoverToggle(title: "Timer", symbol: "timer", isOn: state.offTimer != nil || state.onTimer != nil,
-                          tint: FeatureColor.timer) {
+        }
+    }
+
+    /// Timer and Sleep get a row of their own, named and showing what's set: few apps for these
+    /// ACs offer them.
+    private var schedules: some View {
+        HStack(spacing: 8) {
+            ScheduleButton(title: "Timer", detail: timerDetail, symbol: "timer",
+                           isOn: state.offTimer != nil || state.onTimer != nil, tint: FeatureColor.timer) {
                 TimerPopover(state: state).environment(store)
             }
-            PopoverToggle(title: "Sleep", symbol: "bed.double", isOn: state.sleepProfile != nil,
-                          tint: FeatureColor.sleep) {
+            ScheduleButton(title: "Sleep", detail: sleepDetail, symbol: "bed.double",
+                           isOn: state.sleepProfile != nil, tint: FeatureColor.sleep) {
                 SleepPopover().environment(store)
             }
         }
+    }
+
+    /// The sooner timer; both are listed under the AC.
+    private var timerDetail: String {
+        let timers = [state.offTimer.map { ("Off", $0) }, state.onTimer.map { ("On", $0) }].compactMap(\.self)
+        guard let next = timers.min(by: { $0.1 < $1.1 }) else { return "Turn off later" }
+        return "\(next.0) at \(Self.time(next.1))"
+    }
+
+    private var sleepDetail: String {
+        guard state.sleepProfile != nil else { return "Hourly temperatures" }
+        return store.runningSleepProfile?.name ?? "Profile on"
     }
 
     private func step(_ delta: Double) {
@@ -353,25 +373,54 @@ private enum FeatureColor {
     static let sleep = Color(red: 0.3, green: 0.26, blue: 0.62)
 }
 
-/// A feature button that opens a popover, lit while what it sets is active.
-private struct PopoverToggle<Content: View>: View {
+/// A wide button with its name and what's set, opening a popover. While something is set, its
+/// icon sits in a disc of the feature's colour and the button takes a tint of it.
+private struct ScheduleButton<Content: View>: View {
     let title: String
+    let detail: String
     let symbol: String
     let isOn: Bool
     let tint: Color
     @ViewBuilder let content: () -> Content
     @State private var isPresented = false
+    @Environment(\.isEnabled) private var isEnabled
 
     var body: some View {
         Button { isPresented.toggle() } label: {
-            FeatureIcon(symbol: symbol, isOn: isOn, tint: tint)
+            HStack(spacing: 10) {
+                Image(systemName: symbol)
+                    .symbolVariant(isOn ? .fill : .none)
+                    .font(.callout.weight(.semibold))
+                    .foregroundStyle(isOn ? .white : .primary)
+                    .frame(width: 32, height: 32)
+                    .background(Circle().fill(isOn ? AnyShapeStyle(tint.gradient) : AnyShapeStyle(.quaternary)))
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(title).font(.callout.weight(.semibold))
+                    Text(detail)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                        .truncationMode(.tail)
+                        .contentTransition(.opacity)
+                }
+                Spacer(minLength: 0)
+            }
+            .padding(.leading, 6)
+            .padding(.trailing, 12)
+            .padding(.vertical, 6)
+            .frame(maxWidth: .infinity)
+            .background(Capsule().fill(tint.opacity(isOn && isEnabled ? 0.18 : 0)))
+            .contentShape(.capsule)
         }
         .buttonStyle(.plain)
-        .glassEffect(.regular, in: .capsule)
-        .hoverHint("\(title): \(isOn ? "on" : "off")")
+        .glassEffect(.regular.interactive(), in: .capsule)
+        .animation(.snappy, value: isOn)
+        .animation(.snappy, value: detail)
         .popover(isPresented: $isPresented, arrowEdge: .bottom, content: content)
     }
 }
+
+
 
 /// One feature button: an icon, filled in the feature's colour while on.
 private struct FeatureToggle: View {
