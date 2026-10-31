@@ -95,7 +95,11 @@ home-screen widget, a Quick Settings tile for power, and shortcuts when you long
 icon. Timers and sleep profiles work just as they do on the Mac.
 
 <p align="center">
-  <img src="docs/media/showcase-android-panel-v2.png" alt="Three Android screens: Cool mode with every setting one tap away, the Converti7 cooling levels, and Preview Mode in Auto with a sleep profile and an off timer shown under the AC">
+  <img src="docs/media/showcase-android-panel-v3.png" alt="Three Android screens: Cool mode with every setting one tap away, the Converti7 cooling levels in a strip above their button, and Preview Mode in Auto with a sleep profile and an off timer shown under the AC">
+</p>
+
+<p align="center">
+  <img src="docs/media/showcase-android-widget-tile-shortcuts-v1.png" alt="Mitra on the Android home screen: the widget with power, temperature and − and +, the app shortcuts for AC on, AC off, Cooler and Warmer, and the AC tile in Quick Settings">
 </p>
 
 <p align="center">
