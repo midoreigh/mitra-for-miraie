@@ -9,8 +9,6 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -64,9 +62,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -300,10 +296,7 @@ private fun Temperature(state: ACState, canControl: Boolean, step: (Double) -> U
             val big = if (state.mode.usesSetpoint) ACState.formatTemperature(state.setpoint).dropLast(1) else "Fan"
             val hint = rememberHint(if (state.mode.usesSetpoint) "Set temperature" else "Fan only: no set temperature")
             Box(Modifier.semantics { contentDescription = if (state.mode.usesSetpoint) "Set to $big degrees" else "Fan only" }) {
-                // Which way the setpoint last moved, so each digit rolls the same way.
-                var shown by remember { mutableStateOf(state.setpoint) }
-                val up = state.setpoint >= shown
-                SideEffect { shown = state.setpoint }
+                val up = rememberRising(state.setpoint)
                 AnimatedContent(
                     targetState = state.mode.usesSetpoint,
                     transitionSpec = { fadeIn(tween(200)).togetherWith(fadeOut(tween(150))) },
@@ -316,22 +309,7 @@ private fun Temperature(state: ACState, canControl: Boolean, step: (Double) -> U
                     }
                     // The degree sign hangs off the number, so the digits themselves sit centred.
                     Box {
-                        Row {
-                            // Only the digits that change roll, e.g. just the 6 of 26 going to 27.
-                            big.forEachIndexed { i, digit ->
-                                key(i) {
-                                    AnimatedContent(
-                                        targetState = digit,
-                                        transitionSpec = {
-                                            (slideInVertically(tween(280)) { if (up) it / 2 else -it / 2 } + fadeIn(tween(280)))
-                                                .togetherWith(slideOutVertically(tween(280)) { if (up) -it / 2 else it / 2 } + fadeOut(tween(180)))
-                                        },
-                                        contentAlignment = Alignment.Center,
-                                        label = "digit",
-                                    ) { BigText(it.toString()) }
-                                }
-                            }
-                        }
+                        RollingText(big, up) { BigText(it.toString()) }
                         BigText("°", Modifier.align(Alignment.TopEnd).offset(x = 30.dp))
                     }
                 }

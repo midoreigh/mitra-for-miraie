@@ -1,5 +1,6 @@
 package com.midoreigh.mitra.ui
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Spring
@@ -10,6 +11,9 @@ import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkHorizontally
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -36,7 +40,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -375,6 +381,38 @@ fun TornadoGlyph(color: Color) {
             quadraticTo(w * 0.40f, h * 0.88f, w * 0.48f, h * 0.97f)
         }
         drawPath(tail, color, style = stroke)
+    }
+}
+
+/** Whether [value] last moved up (or hasn't moved), so a number can roll the right way. */
+@Composable
+fun rememberRising(value: Double): Boolean {
+    var shown by remember { mutableStateOf(value) }
+    val up = value >= shown
+    SideEffect { shown = value }
+    return up
+}
+
+/**
+ * [text] with each character rolling on its own when it changes, so 26 to 27 rolls just the
+ * 6. All roll the way the number moved ([up]), even a 9 turning to 0 on the way up.
+ */
+@Composable
+fun RollingText(text: String, up: Boolean, durationMs: Int = 280, character: @Composable (Char) -> Unit) {
+    Row {
+        text.forEachIndexed { i, c ->
+            key(i) {
+                AnimatedContent(
+                    targetState = c,
+                    transitionSpec = {
+                        (slideInVertically(tween(durationMs)) { if (up) it / 2 else -it / 2 } + fadeIn(tween(durationMs)))
+                            .togetherWith(slideOutVertically(tween(durationMs)) { if (up) -it / 2 else it / 2 } + fadeOut(tween(durationMs * 2 / 3)))
+                    },
+                    contentAlignment = Alignment.Center,
+                    label = "character",
+                ) { character(it) }
+            }
+        }
     }
 }
 
