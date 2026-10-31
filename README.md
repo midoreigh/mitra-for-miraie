@@ -13,6 +13,13 @@
 </p>
 
 <p align="center">
+  <a href="https://mitra.midoreigh.com"><strong>mitra.midoreigh.com</strong></a>: see it in action and
+  play with the drawn AC and its controls, right in your browser.
+</p>
+
+<p align="center">
+  <a href="https://mitra.midoreigh.com"><strong>Website</strong></a>
+  ·
   <a href="https://github.com/midoreigh/mitra-for-miraie/releases/latest"><strong>Download for Mac</strong></a>
   ·
   <a href="https://github.com/midoreigh/mitra-for-miraie/releases/tag/android-v1.0.2"><strong>Download for Android</strong></a>
@@ -20,8 +27,6 @@
   <a href="#install">Install guide</a>
   ·
   <a href="#faq">FAQ</a>
-  ·
-  <a href="https://mitra.midoreigh.com">Website</a>
 </p>
 
 <p align="center">
