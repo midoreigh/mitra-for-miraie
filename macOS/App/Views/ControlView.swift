@@ -301,11 +301,11 @@ struct ControlView: View {
     /// ACs offer them.
     private var schedules: some View {
         HStack(spacing: 8) {
-            ScheduleButton(title: "Timer", detail: timerDetail, hint: timerHint, symbol: "timer",
+            ScheduleButton(title: "Timer", detail: timerDetail, hint: timerHint, hintAnchor: .leading, symbol: "timer",
                            isOn: state.offTimer != nil || state.onTimer != nil, tint: FeatureColor.timer) {
                 TimerPopover(state: state).environment(store)
             }
-            ScheduleButton(title: "Sleep", detail: sleepDetail, hint: sleepHint, symbol: "bed.double",
+            ScheduleButton(title: "Sleep", detail: sleepDetail, hint: sleepHint, hintAnchor: .trailing, symbol: "bed.double",
                            isOn: state.sleepProfile != nil, tint: FeatureColor.sleep) {
                 SleepPopover().environment(store)
             }
@@ -327,13 +327,13 @@ struct ControlView: View {
     }
 
     private var sleepHint: String {
-        guard state.sleepProfile != nil else { return "Start a sleep profile: a temperature for each hour of the night" }
-        guard let profile = store.runningSleepProfile else { return "A sleep profile started in the MirAIe app is on" }
+        guard state.sleepProfile != nil else { return "A set temperature for each hour of the night" }
+        guard let profile = store.runningSleepProfile else { return "A profile started in the MirAIe app is on" }
         return "\(profile.name): \(SleepProfile.progress(profile, hour: state.sleepHour).lowercased())"
     }
 
     private var sleepDetail: String {
-        guard state.sleepProfile != nil else { return "Hourly temperatures" }
+        guard state.sleepProfile != nil else { return "Hour by hour" }
         return store.runningSleepProfile?.name ?? "Profile on"
     }
 
@@ -392,6 +392,8 @@ private struct ScheduleButton<Content: View>: View {
     let title: String
     let detail: String
     let hint: String
+    /// Which edge the hint lines up with, so it stays inside the panel.
+    let hintAnchor: HorizontalAlignment
     let symbol: String
     let isOn: Bool
     let tint: Color
@@ -430,7 +432,7 @@ private struct ScheduleButton<Content: View>: View {
         .glassEffect(.regular.interactive(), in: .capsule)
         .animation(.snappy, value: isOn)
         .animation(.snappy, value: detail)
-        .hoverHint(hint)
+        .hoverHint(hint, anchor: hintAnchor)
         .popover(isPresented: $isPresented, arrowEdge: .bottom, content: content)
     }
 }
