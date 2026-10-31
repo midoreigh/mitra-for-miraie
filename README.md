@@ -5,13 +5,21 @@
 <h1 align="center">Mitra for MirAIe</h1>
 
 <p align="center">
-  <strong>Every setting on your Panasonic AC, one tap away.</strong><br>
-  Pick any mode, fan speed or air direction straight away, no more cycling through them, and watch
-  the air flow while you do it. In your Mac's menu bar and on your Android phone.<br>
+  <strong>Control your Panasonic AC from your Mac.</strong><br>
+  No more reaching for the remote or your phone: Mitra puts your MirAIe AC in the menu bar of your
+  MacBook or any Mac. Pick any mode, fan speed or air direction in one click, instead of cycling
+  through them, and watch the air flow while you do it. On Android too.<br>
   A free, open-source alternative to the MirAIe app.
 </p>
 
 <p align="center">
+  <a href="https://mitra.midoreigh.com"><strong>mitra.midoreigh.com</strong></a>: see it in action and
+  play with the drawn AC and its controls, right in your browser.
+</p>
+
+<p align="center">
+  <a href="https://mitra.midoreigh.com"><strong>Website</strong></a>
+  ·
   <a href="https://github.com/midoreigh/mitra-for-miraie/releases/latest"><strong>Download for Mac</strong></a>
   ·
   <a href="https://github.com/midoreigh/mitra-for-miraie/releases/tag/android-v1.0.2"><strong>Download for Android</strong></a>
@@ -19,8 +27,6 @@
   <a href="#install">Install guide</a>
   ·
   <a href="#faq">FAQ</a>
-  ·
-  <a href="https://mitra.midoreigh.com">Website</a>
 </p>
 
 <p align="center">
@@ -35,15 +41,19 @@ https://github.com/user-attachments/assets/641fbb59-b6c4-4b0b-a82d-7edefc93932f
 
 ## Why you'll like it
 
-**Go straight to the setting you want.** In the MirAIe app, the mode is a single button you tap
-again and again, stepping through every mode until you land on the one you want, and fan speed
-and air direction work the same way. In Mitra every option is laid out in front of you, so any
+**Your AC, from your Mac.** There's been no easy way to control a Panasonic MirAIe AC from a
+computer: it was the physical remote or the MirAIe app on your phone. Mitra puts your AC in the
+menu bar of your MacBook or any Mac, with the set temperature beside the icon and every control one
+click away, from any app.
+
+**Go straight to the setting you want.** On the remote and in the MirAIe app, the mode is a single
+button you tap again and again, stepping through every mode until you land on the one you want,
+and fan speed and air direction work the same way. In Mitra every option is laid out in front of you, so any
 mode, fan speed or air direction is just one click or tap away.
 
-**It's always within reach.** No remote lost down the side of the sofa. On your Mac, click the
-icon in the menu bar and your AC is right there, with the set temperature beside the icon at a
-glance. On your phone, open Mitra, or skip the app entirely with the home-screen widget, the
-Quick Settings tile or a long-press on the app icon.
+**It's always within reach.** No remote lost down the side of the sofa. On your phone, open
+Mitra, or skip the app entirely with the home-screen widget, the Quick Settings tile or a
+long-press on the app icon.
 
 **You can see what your AC is doing.** Mitra draws your unit blowing air the way it really
 does: the flap tilts, the air sweeps up and down and side to side at the unit's own pace, takes
