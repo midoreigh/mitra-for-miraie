@@ -4,6 +4,12 @@ What's new in each release of Mitra for MirAIe for Mac. Versions follow
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html). The Android app is versioned
 separately; see [its changelog](android/CHANGELOG.md).
 
+## [Unreleased]
+
+### What's new
+
+- **A new icon.** Your AC with its air in every mode's colour: Heat, Auto, Cool, Dry and Fan.
+
 ## [1.5.0] - 2026-10-31
 
 Timers and sleep profiles, a feature you won't find in other apps for these ACs.
@@ -136,6 +142,7 @@ for the Mac.
 - Desktop and Notification Center widgets and the Control Center toggle are available when you
   build Mitra from source with your own Apple developer account.
 
+[Unreleased]: https://github.com/midoreigh/mitra-for-miraie/compare/v1.5.0...HEAD
 [1.5.0]: https://github.com/midoreigh/mitra-for-miraie/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/midoreigh/mitra-for-miraie/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/midoreigh/mitra-for-miraie/compare/v1.2.1...v1.3.0

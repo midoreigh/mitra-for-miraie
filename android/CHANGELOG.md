@@ -6,6 +6,10 @@ Mac app, and released under tags named `android-v<version>`. Versions follow
 
 ## [Unreleased]
 
+### What's new
+
+- **A new icon.** Your AC with its air in every mode's colour: Heat, Auto, Cool, Dry and Fan.
+
 ## [1.0.1] - 2026-10-31
 
 ### Fixes
