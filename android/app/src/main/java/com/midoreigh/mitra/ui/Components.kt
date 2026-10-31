@@ -40,6 +40,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
@@ -317,20 +318,19 @@ fun WindCircleGlyph(color: Color) {
     }
 }
 
-/**
- * A tornado drawn as tapering, rounded strokes whose centres sway in an S as they narrow:
- * high fan speed.
- * (Material's tornado is blocky beside the other line glyphs.)
- */
+/** Fan blades with motion arcs sweeping round them: a fan at full speed, for high fan speed. */
 @Composable
-fun TornadoGlyph(color: Color) {
-    Canvas(Modifier.size(21.dp)) {
-        val stroke = 1.9.dp.toPx()
-        // Each stroke's start and end across the width, top to bottom.
-        val rows = listOf(0.02f to 0.98f, 0.20f to 0.92f, 0.42f to 0.94f, 0.44f to 0.78f, 0.32f to 0.52f)
-        rows.forEachIndexed { i, (from, to) ->
-            val y = size.height * (0.12f + i * 0.19f)
-            drawLine(color, Offset(size.width * from, y), Offset(size.width * to, y), stroke, StrokeCap.Round)
+fun SpinningFanGlyph(color: Color) {
+    Box(Modifier.size(22.dp), contentAlignment = Alignment.Center) {
+        Box(Modifier.size(14.dp)) { FanBlades(color) }
+        Canvas(Modifier.fillMaxSize()) {
+            val stroke = Stroke(1.7.dp.toPx(), cap = StrokeCap.Round)
+            val inset = stroke.width / 2
+            val arcSize = Size(size.width - stroke.width, size.height - stroke.width)
+            // Two sweeping arcs on opposite sides, so it reads as turning.
+            listOf(195f to 75f, 15f to 75f).forEach { (startAngle, sweep) ->
+                drawArc(color, startAngle, sweep, false, Offset(inset, inset), arcSize, style = stroke)
+            }
         }
     }
 }
