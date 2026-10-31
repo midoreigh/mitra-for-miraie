@@ -6,6 +6,13 @@ Mac app, and released under tags named `android-v<version>`. Versions follow
 
 ## [Unreleased]
 
+### Fixes
+
+- **A neater Converti7 picker.** Tapping Converti7 now opens a glass strip just above the
+  button with every cooling level in one row; tap one to pick it.
+- **Tell AC on and AC off apart.** When you long-press the app icon, AC off now has its own
+  grey, struck-through icon instead of the same one as AC on.
+
 ## [1.0.0] - 2026-10-31
 
 The first full release of Mitra for Android, now with timers and sleep profiles.

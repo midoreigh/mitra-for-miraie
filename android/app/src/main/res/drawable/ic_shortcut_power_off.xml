@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- AC off: a grey disc and a struck-through symbol, so it can't be mistaken for AC on. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item><shape android:shape="oval"><solid android:color="#FF4A5060" /></shape></item>
+    <item android:drawable="@drawable/ic_power_off" android:left="12dp" android:top="12dp" android:right="12dp" android:bottom="12dp" />
+</layer-list>

@@ -5,7 +5,7 @@
         <intent android:action="com.midoreigh.mitra.POWER_ON" android:targetPackage="com.midoreigh.mitra"
             android:targetClass="com.midoreigh.mitra.MainActivity" />
     </shortcut>
-    <shortcut android:shortcutId="power_off" android:icon="@drawable/ic_shortcut_power"
+    <shortcut android:shortcutId="power_off" android:icon="@drawable/ic_shortcut_power_off"
         android:shortcutShortLabel="@string/shortcut_off_short" android:shortcutLongLabel="@string/shortcut_off">
         <intent android:action="com.midoreigh.mitra.POWER_OFF" android:targetPackage="com.midoreigh.mitra"
             android:targetClass="com.midoreigh.mitra.MainActivity" />
