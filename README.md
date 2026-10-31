@@ -13,7 +13,7 @@
 <p align="center">
   <a href="https://github.com/midoreigh/mitra-for-miraie/releases/latest"><strong>Download for Mac</strong></a>
   ·
-  <a href="https://github.com/midoreigh/mitra-for-miraie/releases/tag/android-v1.0.0-rc.1"><strong>Download for Android</strong></a> (release candidate)
+  <a href="https://github.com/midoreigh/mitra-for-miraie/releases/tag/android-v1.0.0"><strong>Download for Android</strong></a>
   ·
   <a href="#install">Install guide</a>
   ·
@@ -57,7 +57,7 @@ straight away. A light on the drawn unit tells you whether your AC is online.
 Every action also works in Shortcuts, so your AC can switch on before you get home.
 
 <p align="center">
-  <img src="docs/media/showcase-panel-v4.png" alt="Three views of the panel: Cool mode with every setting one click away, the panel open under the menu bar in Auto mode, and Preview Mode in Dry, for trying the app without signing in">
+  <img src="docs/media/showcase-panel-v5.png" alt="Three views of the Mac panel: Cool mode with every setting one click away, the panel open under the menu bar, and a sleep profile running, shown under the AC and on the Sleep button">
 </p>
 
 ## Everything you can do
@@ -69,7 +69,7 @@ Every action also works in Shortcuts, so your AC can switch on before you get ho
 | **Fan speed** | Auto, Quiet, Low, Medium and High, named as in the MirAIe app, each one click or tap away. |
 | **Airflow** | Up/down and left/right: swing, or any of five positions on each, each one click or tap away. |
 | **Features** | Eco, Powerful, Converti7 cooling levels, nanoe X on units that have it, and the display light. |
-| **Timers and sleep** (Mac) | Turn off or on at a set time, and sleep profiles with a temperature for each hour of the night. |
+| **Timers and sleep** | Turn off or on at a set time, and sleep profiles with a temperature for each hour of the night. |
 | **Every AC** | Switch between all the ACs on your MirAIe account. |
 | **Siri and Shortcuts** (Mac) | Power, temperature, mode, fan speed, airflow and status. |
 | **Widget, tile and shortcuts** (Android) | A home-screen widget, a Quick Settings tile for power, and AC on, AC off, Cooler and Warmer when you long-press the app icon. |
@@ -80,7 +80,11 @@ can switch features on or off for each AC in Settings. On the Mac, right-click t
 for Refresh, Preview Mode, Settings, Sign Out and Quit; on Android, they're in the ⋮ menu.
 
 <p align="center">
-  <img src="docs/media/showcase-converti-settings-v4.png" width="620" alt="Choosing a Converti7 cooling level, and Settings, where you enable the features your AC has">
+  <img src="docs/media/showcase-timers-sleep-v1.png" alt="Timers and sleep on the Mac: the Timer popover with Turn off and Turn on, the Sleep popover with Gentle and your own profiles, and the editor where you set a temperature for each hour">
+</p>
+
+<p align="center">
+  <img src="docs/media/showcase-settings-v5.png" width="700" alt="Mac Settings: the features your AC has, and Siri and widgets">
 </p>
 
 ## On Android
@@ -88,14 +92,14 @@ for Refresh, Preview Mode, Settings, Sign Out and Quit; on Android, they're in t
 The same living AC and one-tap controls, made for your phone. The AC and its air fill the
 screen, and every control sits on a glass panel at the bottom, within thumb reach. There's a
 home-screen widget, a Quick Settings tile for power, and shortcuts when you long-press the app
-icon. The Android app is a release candidate; try it and tell us what you think.
+icon. Timers and sleep profiles work just as they do on the Mac.
 
 <p align="center">
-  <img src="docs/media/showcase-android-panel-v1.png" alt="Three Android screens: Cool mode with every setting one tap away, Auto mode with purple air at Medium fan speed, and Preview Mode in Dry with the AC shown offline">
+  <img src="docs/media/showcase-android-panel-v2.png" alt="Three Android screens: Cool mode with every setting one tap away, the Converti7 cooling levels, and Preview Mode in Auto with a sleep profile and an off timer shown under the AC">
 </p>
 
 <p align="center">
-  <img src="docs/media/showcase-android-converti-settings-v1.png" width="620" alt="Choosing a Converti7 cooling level on Android, and Settings, where you enable the features your AC has">
+  <img src="docs/media/showcase-android-timers-sleep-v1.png" alt="Timers and sleep on Android: the Timer sheet with a turn-off time, the Sleep sheet with a profile running, and the editor where you set a temperature for each hour">
 </p>
 
 See [Install on Android](#install-on-android) to get it.
@@ -147,7 +151,7 @@ the new version, macOS asks you to confirm it, as described above:
 > expected and safe to allow; all of the source is here to check.
 
 1. On your phone, download **Mitra-for-MirAIe-&lt;version&gt;.apk** from the
-   [Android release](https://github.com/midoreigh/mitra-for-miraie/releases/tag/android-v1.0.0-rc.1).
+   [Android release](https://github.com/midoreigh/mitra-for-miraie/releases/tag/android-v1.0.0).
 2. Open it. If Android asks, allow your browser (or Files app) to **install unknown apps**, then
    go back and tap **Install**. If Google Play Protect says it doesn't recognise the app, tap
    **More details ▸ Install anyway**.
@@ -201,7 +205,7 @@ Panasonic. MirAIe is a trademark of Panasonic.
 |---|---|---|
 | macOS 26 or later | Available | [`macOS`](macOS) |
 | iOS | Planned | |
-| Android 8.0 or later | Release candidate ([download](https://github.com/midoreigh/mitra-for-miraie/releases/tag/android-v1.0.0-rc.1)) | [`android`](android) |
+| Android 8.0 or later | Available ([download](https://github.com/midoreigh/mitra-for-miraie/releases/tag/android-v1.0.0)) | [`android`](android) |
 
 ## Contributing
 
