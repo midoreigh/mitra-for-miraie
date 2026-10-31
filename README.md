@@ -5,8 +5,9 @@
 <h1 align="center">Mitra for MirAIe</h1>
 
 <p align="center">
-  <strong>Your Panasonic AC, right in your Mac's menu bar.</strong><br>
-  Set the temperature, aim the air and switch modes in a click, and watch the air flow while you do it.
+  <strong>Every setting on your Panasonic AC, one tap away.</strong><br>
+  Pick any mode, fan speed or air direction straight away, no more cycling through them, and watch
+  the air flow while you do it. In your Mac's menu bar and on your Android phone.
 </p>
 
 <p align="center">
@@ -36,23 +37,25 @@
 **Go straight to the setting you want.** In the MirAIe app, the mode is a single button you tap
 again and again, stepping through every mode until you land on the one you want, and fan speed
 and air direction work the same way. In Mitra every option is laid out in front of you, so any
-mode, fan speed or air direction is just one click away.
+mode, fan speed or air direction is just one click or tap away.
 
-**It's always one click away.** No phone to find, no app to open, no remote lost down the side of
-the sofa. Click the icon in the menu bar and your AC is right there, with the set temperature
-beside the icon at a glance.
+**It's always within reach.** No remote lost down the side of the sofa. On your Mac, click the
+icon in the menu bar and your AC is right there, with the set temperature beside the icon at a
+glance. On your phone, open Mitra, or skip the app entirely with the home-screen widget, the
+Quick Settings tile or a long-press on the app icon.
 
-**You can see what your AC is doing.** The panel draws your unit blowing air the way it really
+**You can see what your AC is doing.** Mitra draws your unit blowing air the way it really
 does: the flap tilts, the air sweeps up and down and side to side at the unit's own pace, takes
 the mode's colour, and drifts on Quiet or rushes on High.
 
 **Everything the MirAIe app does, faster.** Temperature, mode, fan speed, both louvers, Eco,
-Powerful, Converti7 and more, each a single click away, with your AC answering in a second or two.
+Powerful, Converti7 and more, each a single click or tap away, with your AC answering in a second
+or two.
 
 **It stays in sync.** Change something with the remote or the MirAIe app and Mitra shows it
 straight away. A light on the drawn unit tells you whether your AC is online.
 
-**Just ask Siri.** "Turn on the AC in Mitra for MirAIe." "Make it cooler with Mitra for MirAIe."
+**Just ask Siri, on your Mac.** "Turn on the AC in Mitra for MirAIe." "Make it cooler with Mitra for MirAIe."
 Every action also works in Shortcuts, so your AC can switch on before you get home.
 
 https://github.com/user-attachments/assets/0306e648-c7ce-4be3-b48c-fe29fb07bad0
@@ -62,17 +65,18 @@ https://github.com/user-attachments/assets/0306e648-c7ce-4be3-b48c-fe29fb07bad0
 | | |
 |---|---|
 | **Power and temperature** | Turn on and off, and set 16 to 30 °C with − and +. See the room temperature your AC measures. |
-| **Modes** | Auto, Cool, Dry and Fan, plus Heat on units that have it, each one click away. |
-| **Fan speed** | Auto, Quiet, Low, Medium and High, named as in the MirAIe app, each one click away. |
-| **Airflow** | Up/down and left/right: swing, or any of five positions on each, each one click away. |
+| **Modes** | Auto, Cool, Dry and Fan, plus Heat on units that have it, each one click or tap away. |
+| **Fan speed** | Auto, Quiet, Low, Medium and High, named as in the MirAIe app, each one click or tap away. |
+| **Airflow** | Up/down and left/right: swing, or any of five positions on each, each one click or tap away. |
 | **Features** | Eco, Powerful, Converti7 cooling levels, nanoe X on units that have it, and the display light. |
 | **Every AC** | Switch between all the ACs on your MirAIe account. |
-| **Siri and Shortcuts** | Power, temperature, mode, fan speed, airflow and status. |
+| **Siri and Shortcuts** (Mac) | Power, temperature, mode, fan speed, airflow and status. |
+| **Widget, tile and shortcuts** (Android) | A home-screen widget, a Quick Settings tile for power, and AC on, AC off, Cooler and Warmer when you long-press the app icon. |
 | **Try it first** | A demo AC to play with before signing in, and a Preview Mode that tries controls without touching your AC. |
 
 Mitra only shows what your AC has: Heat and nanoe X appear when your unit reports them, and you
-can switch features on or off for each AC in Settings. Right-click the menu bar icon for Refresh,
-Preview Mode, Settings, Sign Out and Quit.
+can switch features on or off for each AC in Settings. On the Mac, right-click the menu bar icon
+for Refresh, Preview Mode, Settings, Sign Out and Quit; on Android, they're in the ⋮ menu.
 
 <p align="center">
   <img src="docs/media/showcase-converti-settings-v4.png" width="620" alt="Choosing a Converti7 cooling level, and Settings, where you enable the features your AC has">
@@ -162,9 +166,10 @@ old one. You stay signed in.
 Panasonic ACs that you control with the MirAIe app.
 
 **Is my password safe?**
-You sign in with your MirAIe account. Your password is kept in your Mac's Keychain and is only
-ever sent to MirAIe's own servers. Mitra has no analytics; apart from MirAIe, it only contacts
-GitHub to check for new versions, which you can turn off in Settings.
+You sign in with your MirAIe account. Your password is kept in your Mac's Keychain, or encrypted
+with the Android Keystore on your phone, and is only ever sent to MirAIe's own servers. Mitra has
+no analytics; apart from MirAIe, the Mac app only contacts GitHub to check for new versions, which
+you can turn off in Settings, and the Android app contacts nothing else.
 
 **Why does macOS say it can't verify the app?**
 Apple only vouches for apps from developers in its paid developer program. Mitra is a free,
