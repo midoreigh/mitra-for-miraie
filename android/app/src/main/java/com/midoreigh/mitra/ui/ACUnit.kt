@@ -1,6 +1,8 @@
 package com.midoreigh.mitra.ui
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.EaseIn
+import androidx.compose.animation.core.EaseOut
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -23,11 +25,15 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableDoubleStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.BlurredEdgeTreatment
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.CornerRadius
@@ -41,6 +47,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipPath
@@ -63,6 +70,7 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sin
 import kotlin.math.tan
+import kotlinx.coroutines.delay
 
 /**
  * Where the louvers point at a moment in time, in degrees. Fixed positions map to fixed
@@ -105,12 +113,28 @@ class AirParticle(
 )
 
 /**
+ * How far the AC has got through turning on or off, eased: [fan] from still (0) to full speed
+ * (1), and [flap] from closed (0) to open (1).
+ */
+data class PowerLevels(val fan: Double, val flap: Double) {
+    companion object {
+        fun settled(isOn: Boolean) = if (isOn) PowerLevels(1.0, 1.0) else PowerLevels(0.0, 0.0)
+    }
+}
+
+/**
  * Carries the animation from one frame to the next, so changes ease in rather than jump:
  * the louvers travel to a new position at a brisk but visible pace (faster than they swing),
  * and each bit of air keeps the fan speed and mode it left the unit with, so a change flows
- * out from the outlet instead of the whole room changing at once.
+ * out from the outlet instead of the whole room changing at once. Turning on, the flap swings
+ * open and the fan spins up behind it; turning off, the fan winds down and the flap closes once
+ * the air has mostly stopped.
  */
 class AirMotion {
+    /** Unlike [PowerLevels], these change at a steady rate; they're eased when read. */
+    private var fan: Double? = null
+    private var flap: Double? = null
+    private var powerTime: Double? = null
     private var vertical: Double? = null
     private var horizontal: Double? = null
     private var lastTime: Double? = null
@@ -139,13 +163,39 @@ class AirMotion {
     }
 
     /**
+     * Turning on, the flap opens over 0.9 s and, once it's past 0.3, the fan spins up over 1.4 s.
+     * Turning off, the fan winds down over 1.4 s and, once it's below 0.45, the flap closes over
+     * 1 s. Toggled part-way, it carries on from where it is. It starts settled.
+     */
+    fun power(state: ACState, time: Double): PowerLevels {
+        val elapsed = powerTime?.let { min(0.1, max(0.0, time - it)) } ?: 0.0
+        powerTime = time
+        var fan = fan ?: if (state.isOn) 1.0 else 0.0
+        var flap = flap ?: if (state.isOn) 1.0 else 0.0
+        if (state.isOn) {
+            flap = min(1.0, flap + elapsed / 0.9)
+            if (flap > 0.3) fan = min(1.0, fan + elapsed / 1.4)
+        } else {
+            fan = max(0.0, fan - elapsed / 1.4)
+            if (fan < 0.45) flap = max(0.0, flap - elapsed / 1.0)
+        }
+        this.fan = fan
+        this.flap = flap
+        fun ease(x: Double) = x * x * (3 - 2 * x)
+        return PowerLevels(ease(fan), ease(flap))
+    }
+
+    /**
      * Moves every bit of air along at its own speed, and releases new air from the outlet at
      * the current fan speed, carrying the current mode. Air already in the room carries on as
-     * it left until it fades, so a change starts at the outlet and flows outward.
+     * it left until it fades, so a change starts at the outlet and flows outward. While the fan
+     * spins up or winds down, less air comes out and all of it moves slower.
      */
-    fun air(state: ACState, time: Double): List<AirParticle> {
+    fun air(state: ACState, power: PowerLevels, time: Double): List<AirParticle> {
         if (release.isEmpty()) {
-            air += Airflow.steadyAir(state, time)
+            // Already running when first shown: the room is full of air. Turned on later, the air
+            // gathers from the outlet instead.
+            if (state.isOn) air += Airflow.steadyAir(state, time)
             release = DoubleArray(Airflow.STREAMS) { Airflow.noise(it * 13 + 5) }
             gap = DoubleArray(Airflow.STREAMS) { 0.4 + 1.2 * Airflow.noise(it * 29 + 3) }
         }
@@ -153,13 +203,16 @@ class AirMotion {
         airTime = time
         val speed = Airflow.speed(state.fan, time)
 
-        for (particle in air) particle.progress += particle.speed * elapsed
+        val drive = 0.35 + 0.65 * power.fan
+        for (particle in air) particle.progress += particle.speed * drive * elapsed
         air.removeAll { it.progress >= 1 }
+        // Once the fan has stopped, the air left in the room has faded out: start afresh next time.
+        if (power.fan == 0.0) air.clear()
 
         // At a steady speed each stream holds PARTICLES_PER_STREAM bits of air.
         val perStream = Airflow.PARTICLES_PER_STREAM.toDouble()
         for (stream in release.indices) {
-            release[stream] += speed * elapsed * perStream
+            release[stream] += speed * elapsed * perStream * power.fan * power.flap
             while (release[stream] >= gap[stream]) {
                 release[stream] -= gap[stream]
                 released++
@@ -266,8 +319,14 @@ fun ACUnitScene(
     statusLight: Color? = null,
     onStatusLightTap: (() -> Unit)? = null,
 ) {
-    val airAlpha by animateFloatAsState(if (state.isOn) 1f else 0f, tween(600), label = "air")
-    val clock = rememberFrameClock(state.isOn || airAlpha > 0f)
+    // Keeps the animation running while the AC finishes turning off (about 1.8 s).
+    var settling by remember { mutableStateOf(false) }
+    LaunchedEffect(state.isOn) {
+        settling = true
+        delay(2_500)
+        settling = false
+    }
+    val clock = rememberFrameClock(state.isOn || settling)
     val motion = remember { AirMotion() }
 
     BoxWithConstraints(modifier) {
@@ -277,30 +336,44 @@ fun ACUnitScene(
 
         // The air, from under the unit to the bottom of the scene, drawn first so the flap
         // hangs over its start.
-        Canvas(Modifier.fillMaxSize().graphicsLayer { alpha = airAlpha }) {
+        Canvas(Modifier.fillMaxSize()) {
             val time = clock.value
             val angles = motion.angles(state, time)
-            val air = motion.air(state, time)
+            val power = motion.power(state, time)
+            val air = motion.air(state, power, time)
             translate(0f, unitHeight.toPx()) {
-                drawAir(air, angles, time, Size(size.width, size.height - unitHeight.toPx()))
+                drawAir(air, angles, time, Size(size.width, size.height - unitHeight.toPx()), power.fan)
             }
         }
         Canvas(Modifier.offset(x = unitLeft).size(unitWidth, unitHeight)) {
-            // The air already moved the louvers to this frame; this reads the same angles.
-            drawUnitShell(state.isOn, motion.angles(state, clock.value))
+            // The air already moved the louvers and the power on to this frame; this reads the same.
+            val time = clock.value
+            drawUnitShell(motion.power(state, time).flap.toFloat(), motion.angles(state, time))
         }
 
-        // The set temperature glowing through the casing, lit while the AC runs with its display on.
+        // The set temperature glowing through the casing, lit while the AC runs with its display
+        // on. It glows up out of a soft blur when it lights, and dims quickly when it goes out.
         val lit = state.isOn && state.display
-        val displayAlpha by animateFloatAsState(if (lit) 1f else 0f, tween(300), label = "display")
+        val glow by animateFloatAsState(
+            if (lit) 1f else 0f,
+            if (lit) tween(700, delayMillis = 100, easing = EaseOut) else tween(350, easing = EaseIn),
+            label = "display",
+        )
+        val digits = unitHeight * 0.3f
         Box(
             Modifier
                 .offset(x = unitLeft, y = unitHeight * 0.1f)
                 .size(unitWidth * 0.95f, unitHeight * 0.38f)
-                .alpha(displayAlpha),
+                .graphicsLayer {
+                    alpha = glow
+                    scaleX = 0.94f + 0.06f * glow
+                    scaleY = scaleX
+                    transformOrigin = TransformOrigin(1f, 0.5f)
+                }
+                .blur(digits * 0.18f * (1 - glow), BlurredEdgeTreatment.Unbounded),
             contentAlignment = Alignment.CenterEnd,
         ) {
-            UnitReadout(state, unitHeight * 0.3f)
+            UnitReadout(state, digits)
         }
 
         val light = statusLight ?: if (state.isOn && state.display) MitraColors.online else null
@@ -369,8 +442,9 @@ private fun StatusLight(color: Color, diameter: Dp, modifier: Modifier = Modifie
  * casing, flush and closed while the AC is off. Running, it swings away from the casing to
  * open the outlet behind it: level, it shows its whole face and hangs a little below the
  * unit; pointing down, it's seen almost edge-on, a thin blade with a wide gap above it.
+ * Turning on or off, it swings smoothly between closed and open ([openness] 0 to 1).
  */
-private fun DrawScope.drawUnitShell(isOn: Boolean, angles: LouverAngles) {
+private fun DrawScope.drawUnitShell(openness: Float, angles: LouverAngles) {
     val w = size.width
     val h = size.height
     val radius = h * 0.28f
@@ -381,8 +455,8 @@ private fun DrawScope.drawUnitShell(isOn: Boolean, angles: LouverAngles) {
     // 1 when the flap is level (seen from below, its whole face shows), 0 when it points
     // straight down (seen almost edge-on, with the outlet wide open above it).
     val level = (1 - ((angles.vertical - 12) / 60).coerceIn(0.0, 1.0)).toFloat()
-    val gap = if (isOn) h * (0.15f - 0.07f * level) else 0f
-    val face = if (isOn) strip * (0.4f + 0.75f * level) else strip
+    val gap = openness * h * (0.15f - 0.07f * level)
+    val face = strip + openness * (strip * (0.4f + 0.75f * level) - strip)
 
     val casing = Path().apply { addRoundRect(RoundRect(0f, 0f, w, h, CornerRadius(radius))) }
 
@@ -397,12 +471,12 @@ private fun DrawScope.drawUnitShell(isOn: Boolean, angles: LouverAngles) {
     val outlet = Rect(cap, seam, w - cap, h)
     clipPath(casing) {
         drawRect(Color(0xFF242424), outlet.topLeft, outlet.size)
-        if (isOn) {
+        if (openness > 0) {
             val lean = (tan(angles.horizontal * PI / 180) * gap * 1.2).toFloat()
             for (index in 1 until 12) {
                 val x = outlet.left + outlet.width * index / 12
                 drawLine(
-                    Color(0xFF8C8C8C), Offset(x - lean / 2, seam + 1), Offset(x + lean / 2, seam + gap - 1),
+                    Color(0xFF8C8C8C).copy(alpha = openness), Offset(x - lean / 2, seam + 1), Offset(x + lean / 2, seam + gap - 1),
                     strokeWidth = 1.dp.toPx(), cap = StrokeCap.Round,
                 )
             }
@@ -410,19 +484,24 @@ private fun DrawScope.drawUnitShell(isOn: Boolean, angles: LouverAngles) {
     }
 
     // The flap. Closed, it's clipped to the casing's rounded bottom so it reads as part of it;
-    // open, it's its own rounded blade.
+    // as it opens, the clip lets go and it becomes its own rounded blade.
     val top = seam + gap
     val blade = Rect(cap + 0.5f, top, w - cap - 0.5f, top + face)
     val bladeBrush = Brush.verticalGradient(listOf(Color(0xFFF7F7F7), Color(0xFFCCCCCC)), top, top + face)
-    if (isOn) {
-        val corner = min(face / 2, h * 0.08f)
-        drawRoundRect(bladeBrush, blade.topLeft, blade.size, CornerRadius(corner))
+    val reach = Path().apply { addRoundRect(RoundRect(0f, 0f, w, h * (1 + 0.6f * openness), CornerRadius(radius))) }
+    clipPath(reach) {
+        drawRoundRect(bladeBrush, blade.topLeft, blade.size, CornerRadius(openness * min(face / 2, h * 0.08f)))
+    }
+    if (openness > 0) {
         // The leading edge catches the light.
-        drawLine(Color.White, Offset(blade.left + 3, top + 0.6f), Offset(blade.right - 3, top + 0.6f), strokeWidth = 1.dp.toPx())
-    } else {
-        clipPath(casing) { drawRect(bladeBrush, blade.topLeft, blade.size) }
+        drawLine(
+            Color.White.copy(alpha = openness), Offset(blade.left + 3, top + 0.6f), Offset(blade.right - 3, top + 0.6f),
+            strokeWidth = 1.dp.toPx(),
+        )
+    }
+    if (openness < 1) {
         // A fine seam between the panel and the closed flap.
-        drawLine(Color(0xFFB8B8B8), Offset(cap, seam), Offset(w - cap, seam), strokeWidth = 0.75.dp.toPx())
+        drawLine(Color(0xFFB8B8B8).copy(alpha = 1 - openness), Offset(cap, seam), Offset(w - cap, seam), strokeWidth = 0.75.dp.toPx())
     }
 
     // Gloss across the top of the front panel, and a crisp outline.
@@ -437,7 +516,8 @@ private fun DrawScope.drawUnitShell(isOn: Boolean, angles: LouverAngles) {
  * Streams of air particles. Each particle travels out of the outlet in 3D (down, towards the
  * viewer, sideways) and is projected for a viewer slightly above the unit.
  */
-private fun DrawScope.drawAir(air: List<AirParticle>, angles: LouverAngles, time: Double, area: Size) {
+/** [level] is how strongly the air shows, 0 to 1: it fades in and out as the fan spins up and down. */
+private fun DrawScope.drawAir(air: List<AirParticle>, angles: LouverAngles, time: Double, area: Size, level: Double) {
     val tilt = angles.vertical * PI / 180
     val steer = angles.horizontal * PI / 180
     val reach = area.height * 1.05
@@ -452,7 +532,7 @@ private fun DrawScope.drawAir(air: List<AirParticle>, angles: LouverAngles, time
         val progress = particle.progress
         val head = point(progress, originX, tilt, steer + fan, reach, buoyancy, area, unit)
         val tail = point(max(0.0, progress - 0.12), originX, tilt, steer + fan, reach, buoyancy, area, unit)
-        val fade = (sin(PI * progress) * (0.55 + 0.35 * particle.seed) * Airflow.breath(particle.fan, time)).toFloat()
+        val fade = (sin(PI * progress) * (0.55 + 0.35 * particle.seed) * Airflow.breath(particle.fan, time) * level).toFloat()
         drawLine(
             Brush.linearGradient(
                 listOf(particle.mode.tint.copy(alpha = 0f), particle.mode.glow.copy(alpha = fade.coerceIn(0f, 1f))),
@@ -489,7 +569,7 @@ private fun point(
 @Composable
 fun GraphiteBackdrop(isOn: Boolean, modifier: Modifier = Modifier) {
     val clock = rememberFrameClock(isOn)
-    val dim by animateFloatAsState(if (isOn) 0f else 0.08f, tween(800), label = "dim")
+    val dim by animateFloatAsState(if (isOn) 0f else 0.08f, tween(1_400), label = "dim")
     Canvas(modifier.fillMaxWidth()) {
         val t = clock.value
         val tint = ACMode.FAN.tint

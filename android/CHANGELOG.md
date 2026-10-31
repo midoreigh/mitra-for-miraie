@@ -6,6 +6,12 @@ Mac app, and released under tags named `android-v<version>`. Versions follow
 
 ## [Unreleased]
 
+### What's new
+
+- **Watch your AC switch on and off.** Turning on, the flap swings open, the fan spins up and
+  the air gathers from the outlet while the display glows up. Turning off, the air slows and
+  fades before the flap closes, just like the real unit.
+
 ### Fixes
 
 - **An AC without power now shows as offline.** During a power cut, Mitra could still show your
