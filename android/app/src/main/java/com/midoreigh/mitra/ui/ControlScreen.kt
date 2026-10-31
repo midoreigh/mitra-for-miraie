@@ -17,6 +17,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -26,6 +27,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
@@ -53,7 +55,6 @@ import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material.icons.rounded.PowerSettingsNew
 import androidx.compose.material.icons.rounded.Remove
 import androidx.compose.material.icons.rounded.Thermostat
-import androidx.compose.material.icons.rounded.Tornado
 import androidx.compose.material.icons.rounded.WaterDrop
 import androidx.compose.material.icons.rounded.WbSunny
 import androidx.compose.material.icons.rounded.WifiOff
@@ -95,22 +96,30 @@ import kotlinx.coroutines.launch
 fun ControlScreen(ui: UiState, store: ACStore, openSettings: () -> Unit) {
     val state = ui.state
     val controlsAlpha by animateFloatAsState(if (state.isOn) 1f else 0.55f, tween(300), label = "controls")
-    Column(
-        Modifier
-            .fillMaxSize()
-            .background(MitraColors.night)
-            .verticalScroll(rememberScrollState())
-            .padding(bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()),
-    ) {
-        Hero(ui, store, openSettings)
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-            AnimatedVisibility(!state.isOnline, enter = expandVertically() + fadeIn(), exit = shrinkVertically() + fadeOut()) {
-                OfflineBanner(ui.selected?.name ?: "The AC")
-            }
-            Column(Modifier.alpha(controlsAlpha), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                FanBar(state, ui.canControl) { store.send(ACCommand.Fan(it)) }
-                ModeBar(state, ui, ui.canControl) { store.send(ACCommand.Mode(it)) }
-                Features(state, ui, store)
+    BoxWithConstraints(Modifier.fillMaxSize().background(MitraColors.night)) {
+        // On a typical phone everything fits on one screen, the hero taking the spare height and
+        // the controls sitting low, within thumb reach. A short screen scrolls instead.
+        val fits = maxHeight >= 640.dp
+        val top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
+        Column(
+            Modifier
+                .fillMaxSize()
+                .then(if (fits) Modifier else Modifier.verticalScroll(rememberScrollState()))
+                .padding(bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()),
+        ) {
+            Hero(ui, store, openSettings, if (fits) Modifier.weight(1f) else Modifier.height(top + 460.dp))
+            Column(
+                Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                AnimatedVisibility(!state.isOnline, enter = expandVertically() + fadeIn(), exit = shrinkVertically() + fadeOut()) {
+                    OfflineBanner(ui.selected?.name ?: "The AC")
+                }
+                Column(Modifier.alpha(controlsAlpha), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    FanBar(state, ui.canControl) { store.send(ACCommand.Fan(it)) }
+                    ModeBar(state, ui, ui.canControl) { store.send(ACCommand.Mode(it)) }
+                    Features(state, ui, store)
+                }
             }
         }
     }
@@ -120,7 +129,7 @@ fun ControlScreen(ui: UiState, store: ACStore, openSettings: () -> Unit) {
 
 /** The AC edge to edge with its air, the set temperature over it and the louvers along the bottom. */
 @Composable
-private fun Hero(ui: UiState, store: ACStore, openSettings: () -> Unit) {
+private fun Hero(ui: UiState, store: ACStore, openSettings: () -> Unit, modifier: Modifier) {
     val state = ui.state
     val top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
     val shape = RoundedCornerShape(bottomStart = 28.dp, bottomEnd = 28.dp)
@@ -128,7 +137,7 @@ private fun Hero(ui: UiState, store: ACStore, openSettings: () -> Unit) {
     Box(
         Modifier
             .fillMaxWidth()
-            .height(top + 400.dp)
+            .then(modifier)
             .clip(shape)
             .border(1.dp, MitraColors.glassBorder, shape),
     ) {
@@ -148,7 +157,7 @@ private fun Hero(ui: UiState, store: ACStore, openSettings: () -> Unit) {
             Temperature(state, ui.canControl) { delta ->
                 store.send(ACCommand.Temperature((state.setpoint + delta).coerceIn(ACState.MIN_TEMPERATURE, ACState.MAX_TEMPERATURE)))
             }
-            Spacer(Modifier.height(14.dp))
+            Spacer(Modifier.height(16.dp))
             Louvers(state, ui.canControl, store)
         }
     }
@@ -169,9 +178,9 @@ private fun Header(ui: UiState, store: ACStore, openSettings: () -> Unit) {
     Row(Modifier.fillMaxWidth().height(48.dp), verticalAlignment = Alignment.CenterVertically) {
         PowerButton(state.isOn, ui.canControl) { store.send(ACCommand.Power(!state.isOn)) }
         Spacer(Modifier.width(12.dp))
-        DeviceName(ui, store, Modifier.weight(1f, fill = false))
-        Spacer(Modifier.weight(1f))
+        DeviceName(ui, store, Modifier.weight(1f))
         if (ui.isPreviewing) {
+            Spacer(Modifier.width(8.dp))
             val hint = rememberHint(if (ui.isDemo) "A made-up AC. Tap to leave." else "Not sending to the AC. Tap to stop.")
             Text(
                 "Preview",
@@ -275,12 +284,18 @@ private fun DeviceName(ui: UiState, store: ACStore, modifier: Modifier) {
     }
 }
 
-/** The set temperature, large, with the room temperature under it and − / + at the right. */
+/** The set temperature, large and centred, with the room temperature under it and − / + either side. */
 @Composable
 private fun Temperature(state: ACState, canControl: Boolean, step: (Double) -> Unit) {
     val alpha by animateFloatAsState(if (state.isOn) 1f else 0.6f, tween(300), label = "temperature")
-    Row(Modifier.fillMaxWidth().alpha(alpha), verticalAlignment = Alignment.Bottom) {
-        Column(Modifier.weight(1f)) {
+    val enabled = canControl && state.mode.usesSetpoint
+    Row(
+        Modifier.fillMaxWidth().alpha(alpha),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween,
+    ) {
+        RoundButton(Icons.Rounded.Remove, "Cooler", enabled && state.setpoint > ACState.MIN_TEMPERATURE, size = 56.dp) { step(-1.0) }
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
             val big = if (state.mode.usesSetpoint) ACState.formatTemperature(state.setpoint).dropLast(1) else "Fan"
             val hint = rememberHint(if (state.mode.usesSetpoint) "Set temperature" else "Fan only: no set temperature")
             Box(Modifier.semantics { contentDescription = if (state.mode.usesSetpoint) "Set to $big degrees" else "Fan only" }) {
@@ -291,14 +306,17 @@ private fun Temperature(state: ACState, canControl: Boolean, step: (Double) -> U
                         (slideInVertically(tween(280)) { if (up) it / 2 else -it / 2 } + fadeIn(tween(280)))
                             .togetherWith(slideOutVertically(tween(280)) { if (up) -it / 2 else it / 2 } + fadeOut(tween(180)))
                     },
+                    contentAlignment = Alignment.Center,
                     label = "setpoint",
                 ) { value ->
-                    Row(verticalAlignment = Alignment.Top) {
-                        Text(value, color = Color.White, fontSize = 64.sp, fontFamily = RoundedFamily,
-                            fontWeight = FontWeight.ExtraLight, lineHeight = 64.sp)
+                    // The degree sign hangs off the number, so the digits themselves sit centred.
+                    Box {
+                        Text(value, color = Color.White, fontSize = 88.sp, fontFamily = RoundedFamily,
+                            fontWeight = FontWeight.ExtraLight, lineHeight = 88.sp)
                         if (state.mode.usesSetpoint) {
-                            Text("°", color = Color.White, fontSize = 64.sp, fontFamily = RoundedFamily,
-                                fontWeight = FontWeight.ExtraLight, lineHeight = 64.sp)
+                            Text("°", color = Color.White, fontSize = 88.sp, fontFamily = RoundedFamily,
+                                fontWeight = FontWeight.ExtraLight, lineHeight = 88.sp,
+                                modifier = Modifier.align(Alignment.TopEnd).offset(x = 30.dp))
                         }
                     }
                 }
@@ -316,11 +334,7 @@ private fun Temperature(state: ACState, canControl: Boolean, step: (Double) -> U
                 }
             }
         }
-        val enabled = canControl && state.mode.usesSetpoint
-        Row(Modifier.padding(bottom = 4.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            RoundButton(Icons.Rounded.Remove, "Cooler", enabled && state.setpoint > ACState.MIN_TEMPERATURE) { step(-1.0) }
-            RoundButton(Icons.Rounded.Add, "Warmer", enabled && state.setpoint < ACState.MAX_TEMPERATURE) { step(1.0) }
-        }
+        RoundButton(Icons.Rounded.Add, "Warmer", enabled && state.setpoint < ACState.MAX_TEMPERATURE, size = 56.dp) { step(1.0) }
     }
 }
 
@@ -328,22 +342,24 @@ private fun Temperature(state: ACState, canControl: Boolean, step: (Double) -> U
 @Composable
 private fun Louvers(state: ACState, canControl: Boolean, store: ACStore) {
     val alpha by animateFloatAsState(if (state.isOn) 1f else 0.6f, tween(300), label = "louvers")
-    Row(Modifier.fillMaxWidth().alpha(alpha), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    Column(Modifier.fillMaxWidth().alpha(alpha), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Segments(
             values = listOf(Louver.SWING) + Louver.positions.toList(),
             selection = state.verticalLouver,
             select = { store.send(ACCommand.VerticalLouver(it)) },
             hint = { "Up/down: ${Louver.verticalLabel(it)}" },
-            modifier = Modifier.weight(1f),
+            modifier = Modifier.fillMaxWidth(),
             enabled = canControl,
+            height = 44.dp,
         ) { position, color -> LouverGlyph(vertical = true, position = position, color = color) }
         Segments(
             values = listOf(Louver.SWING) + Louver.horizontalLeftToRight,
             selection = state.horizontalLouver,
             select = { store.send(ACCommand.HorizontalLouver(it)) },
             hint = { "Left/right: ${Louver.horizontalLabel(it)}" },
-            modifier = Modifier.weight(1f),
+            modifier = Modifier.fillMaxWidth(),
             enabled = canControl,
+            height = 44.dp,
         ) { position, color -> LouverGlyph(vertical = false, position = position, color = color) }
     }
 }
@@ -370,10 +386,11 @@ private fun OfflineBanner(name: String) {
 @Composable
 private fun FanBar(state: ACState, enabled: Boolean, select: (FanSpeed) -> Unit) {
     LabeledBar("Fan", state.fan.title) {
-        Segments(FanSpeed.entries, state.fan, select, hint = { it.title }, enabled = enabled, height = 44.dp) { speed, color ->
+        Segments(FanSpeed.entries, state.fan, select, hint = { it.title }, enabled = enabled, height = 48.dp) { speed, color ->
             when (speed) {
                 FanSpeed.AUTO -> FanAutoGlyph(color)
                 FanSpeed.MEDIUM -> WindCircleGlyph(color)
+                FanSpeed.HIGH -> TornadoGlyph(color)
                 else -> Icon(speed.icon, null, tint = color, modifier = Modifier.size(21.dp))
             }
         }
@@ -383,8 +400,7 @@ private fun FanBar(state: ACState, enabled: Boolean, select: (FanSpeed) -> Unit)
 private val FanSpeed.icon: ImageVector
     get() = when (this) {
         FanSpeed.QUIET -> Icons.Rounded.Bedtime
-        FanSpeed.LOW -> Icons.Rounded.Air
-        else -> Icons.Rounded.Tornado
+        else -> Icons.Rounded.Air
     }
 
 @Composable
@@ -392,7 +408,7 @@ private fun ModeBar(state: ACState, ui: UiState, enabled: Boolean, select: (ACMo
     LabeledBar("Mode", state.mode.title) {
         Segments(
             ui.selectedCapabilities.modes, state.mode, select, hint = { it.title },
-            tint = state.mode.controlTint, prominent = true, enabled = enabled, height = 44.dp,
+            tint = state.mode.controlTint, prominent = true, enabled = enabled, height = 48.dp,
         ) { mode, color ->
             if (mode == ACMode.FAN) FanGlyph(color) else Icon(mode.icon, null, tint = color, modifier = Modifier.size(21.dp))
         }
@@ -436,7 +452,8 @@ private fun Features(state: ACState, ui: UiState, store: ACStore) {
         }
         // The same colour as the AC's own display.
         FeatureButton(if (state.display) Icons.Rounded.Lightbulb else Icons.Outlined.Lightbulb, "Display: ${onOff(state.display)}",
-            state.display, MitraColors.acDisplay, Modifier.weight(1f), enabled) { store.send(ACCommand.Display(!state.display)) }
+            state.display, MitraColors.bulb, Modifier.weight(1f), enabled, iconColor = MitraColors.bulbIcon,
+        ) { store.send(ACCommand.Display(!state.display)) }
     }
 }
 

@@ -10,6 +10,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -204,12 +205,13 @@ fun <T> Segments(
 /** A bar with its name and current value on the left, e.g. "Fan / Auto". */
 @Composable
 fun LabeledBar(title: String, value: String, bar: @Composable () -> Unit) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Column(Modifier.width(64.dp)) {
-            Text(title, fontSize = 12.sp, color = MitraColors.secondaryText, maxLines = 1)
-            Text(value, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = Color.White, maxLines = 1)
+    // The label sits above, so the bar gets the full width of the phone.
+    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Row(Modifier.padding(start = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+            Text("$title · ", fontSize = 13.sp, color = MitraColors.secondaryText, maxLines = 1)
+            Text(value, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = Color.White, maxLines = 1)
         }
-        Box(Modifier.weight(1f)) { bar() }
+        bar()
     }
 }
 
@@ -315,6 +317,24 @@ fun WindCircleGlyph(color: Color) {
     }
 }
 
+/**
+ * A tornado drawn as tapering, rounded strokes whose centres sway in an S as they narrow:
+ * high fan speed.
+ * (Material's tornado is blocky beside the other line glyphs.)
+ */
+@Composable
+fun TornadoGlyph(color: Color) {
+    Canvas(Modifier.size(21.dp)) {
+        val stroke = 1.9.dp.toPx()
+        // Each stroke's start and end across the width, top to bottom.
+        val rows = listOf(0.02f to 0.98f, 0.20f to 0.92f, 0.42f to 0.94f, 0.44f to 0.78f, 0.32f to 0.52f)
+        rows.forEachIndexed { i, (from, to) ->
+            val y = size.height * (0.12f + i * 0.19f)
+            drawLine(color, Offset(size.width * from, y), Offset(size.width * to, y), stroke, StrokeCap.Round)
+        }
+    }
+}
+
 /** One feature button: an icon, filled in the feature's colour while on. */
 @Composable
 fun FeatureButton(
@@ -324,6 +344,8 @@ fun FeatureButton(
     tint: Color,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
+    /** The icon's colour while on. */
+    iconColor: Color = Color.White,
     onClick: () -> Unit,
 ) {
     val hintState = rememberHint(hint)
@@ -331,7 +353,7 @@ fun FeatureButton(
     val shape = RoundedCornerShape(50)
     Box(
         modifier
-            .height(44.dp)
+            .height(50.dp)
             .clip(shape)
             .background(fill, shape)
             .border(1.dp, if (isOn) Color.Transparent else MitraColors.glassBorder, shape)
@@ -339,6 +361,8 @@ fun FeatureButton(
             .hinted(hint, hintState, enabled, role = Role.Switch, onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
-        Icon(icon, null, tint = if (isOn) Color.White else MitraColors.secondaryText, modifier = Modifier.size(22.dp))
+        // Disabled, the panel dims the fill, so a dark icon (the bulb's) would vanish into it.
+        val onColor = if (enabled) iconColor else Color.White
+        Icon(icon, null, tint = if (isOn) onColor else MitraColors.secondaryText, modifier = Modifier.size(22.dp))
     }
 }
