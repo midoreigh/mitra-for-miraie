@@ -18,6 +18,8 @@
   <a href="#install">Install guide</a>
   ·
   <a href="#faq">FAQ</a>
+  ·
+  <a href="https://mitra.midoreigh.com">Website</a>
 </p>
 
 <p align="center">
