@@ -12,8 +12,8 @@ android {
         minSdk = 26
         targetSdk = 36
         // The Android app is versioned on its own; releases are tagged android-v<versionName>.
-        versionCode = 2
-        versionName = "1.0.0"
+        versionCode = 3
+        versionName = "1.0.1"
     }
 
     // The permanent release key, from the environment (the release workflow sets these from the
