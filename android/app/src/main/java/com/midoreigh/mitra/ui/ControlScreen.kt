@@ -64,7 +64,9 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -298,25 +300,39 @@ private fun Temperature(state: ACState, canControl: Boolean, step: (Double) -> U
             val big = if (state.mode.usesSetpoint) ACState.formatTemperature(state.setpoint).dropLast(1) else "Fan"
             val hint = rememberHint(if (state.mode.usesSetpoint) "Set temperature" else "Fan only: no set temperature")
             Box(Modifier.semantics { contentDescription = if (state.mode.usesSetpoint) "Set to $big degrees" else "Fan only" }) {
+                // Which way the setpoint last moved, so each digit rolls the same way.
+                var shown by remember { mutableStateOf(state.setpoint) }
+                val up = state.setpoint >= shown
+                SideEffect { shown = state.setpoint }
                 AnimatedContent(
-                    targetState = big,
-                    transitionSpec = {
-                        val up = (targetState.toDoubleOrNull() ?: 0.0) > (initialState.toDoubleOrNull() ?: 0.0)
-                        (slideInVertically(tween(280)) { if (up) it / 2 else -it / 2 } + fadeIn(tween(280)))
-                            .togetherWith(slideOutVertically(tween(280)) { if (up) -it / 2 else it / 2 } + fadeOut(tween(180)))
-                    },
+                    targetState = state.mode.usesSetpoint,
+                    transitionSpec = { fadeIn(tween(200)).togetherWith(fadeOut(tween(150))) },
                     contentAlignment = Alignment.Center,
-                    label = "setpoint",
-                ) { value ->
+                    label = "usesSetpoint",
+                ) { usesSetpoint ->
+                    if (!usesSetpoint) {
+                        BigText("Fan")
+                        return@AnimatedContent
+                    }
                     // The degree sign hangs off the number, so the digits themselves sit centred.
                     Box {
-                        Text(value, color = Color.White, fontSize = 88.sp, fontFamily = RoundedFamily,
-                            fontWeight = FontWeight.ExtraLight, lineHeight = 88.sp)
-                        if (state.mode.usesSetpoint) {
-                            Text("°", color = Color.White, fontSize = 88.sp, fontFamily = RoundedFamily,
-                                fontWeight = FontWeight.ExtraLight, lineHeight = 88.sp,
-                                modifier = Modifier.align(Alignment.TopEnd).offset(x = 30.dp))
+                        Row {
+                            // Only the digits that change roll, e.g. just the 6 of 26 going to 27.
+                            big.forEachIndexed { i, digit ->
+                                key(i) {
+                                    AnimatedContent(
+                                        targetState = digit,
+                                        transitionSpec = {
+                                            (slideInVertically(tween(280)) { if (up) it / 2 else -it / 2 } + fadeIn(tween(280)))
+                                                .togetherWith(slideOutVertically(tween(280)) { if (up) -it / 2 else it / 2 } + fadeOut(tween(180)))
+                                        },
+                                        contentAlignment = Alignment.Center,
+                                        label = "digit",
+                                    ) { BigText(it.toString()) }
+                                }
+                            }
                         }
+                        BigText("°", Modifier.align(Alignment.TopEnd).offset(x = 30.dp))
                     }
                 }
                 // Long-press the number to name it.
@@ -335,6 +351,13 @@ private fun Temperature(state: ACState, canControl: Boolean, step: (Double) -> U
         }
         RoundButton(Icons.Rounded.Add, "Warmer", enabled && state.setpoint < ACState.MAX_TEMPERATURE, size = 56.dp) { step(1.0) }
     }
+}
+
+/** The set temperature's large, light, rounded type. */
+@Composable
+private fun BigText(text: String, modifier: Modifier = Modifier) {
+    Text(text, color = Color.White, fontSize = 88.sp, fontFamily = RoundedFamily,
+        fontWeight = FontWeight.ExtraLight, lineHeight = 88.sp, modifier = modifier)
 }
 
 /** Up/down and left/right louvers: swing, or one of five fixed positions. */
