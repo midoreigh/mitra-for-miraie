@@ -203,7 +203,7 @@ Panasonic. MirAIe is a trademark of Panasonic.
 
 | Platform | Status | Folder |
 |---|---|---|
-| macOS 26 or later | Available | [`macOS`](macOS) |
+| macOS 26 or later | Available ([download](https://github.com/midoreigh/mitra-for-miraie/releases/latest)) | [`macOS`](macOS) |
 | iOS | Planned | |
 | Android 8.0 or later | Available ([download](https://github.com/midoreigh/mitra-for-miraie/releases/tag/android-v1.0.0)) | [`android`](android) |
 
