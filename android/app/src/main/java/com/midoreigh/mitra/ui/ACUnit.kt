@@ -5,8 +5,6 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -252,6 +250,10 @@ fun rememberFrameClock(running: Boolean): State<Double> {
 /** The unit's width as a share of the scene's; the air fans out across the rest. */
 private const val UNIT_WIDTH = 0.64f
 
+/** How tall the unit is drawn in a scene of this size, so layouts can sit things under it. */
+fun unitHeight(sceneWidth: Dp, sceneHeight: Dp): Dp =
+    min((sceneHeight * 0.34f).value, (sceneWidth * UNIT_WIDTH / 3.9f).value).dp
+
 /**
  * The indoor unit seen from the front, with air streaming out that follows both louvers:
  * the vertical louver sets how far down the air goes, the horizontal one steers it left or
@@ -270,7 +272,7 @@ fun ACUnitScene(
 
     BoxWithConstraints(modifier) {
         val unitWidth = maxWidth * UNIT_WIDTH
-        val unitHeight = min((maxHeight * 0.34f).value, (unitWidth / 3.9f).value).dp
+        val unitHeight = unitHeight(maxWidth, maxHeight)
         val unitLeft = (maxWidth - unitWidth) / 2
 
         // The air, from under the unit to the bottom of the scene, drawn first so the flap
@@ -324,25 +326,25 @@ fun ACUnitScene(
 
 @Composable
 private fun UnitReadout(state: ACState, height: Dp) {
-    val text = if (state.mode.usesSetpoint) ACState.formatTemperature(state.setpoint).dropLast(1) else "FAN"
+    val style = TextStyle(
+        fontFamily = RoundedFamily, fontWeight = FontWeight.SemiBold,
+        fontSize = (height.value * 1.05f).sp, color = MitraColors.acDisplay, textAlign = TextAlign.End,
+        shadow = Shadow(MitraColors.acDisplay.copy(alpha = 0.35f), blurRadius = height.value * 0.4f),
+    )
+    val up = rememberRising(state.setpoint)
     AnimatedContent(
-        targetState = text,
-        transitionSpec = {
-            val up = (targetState.toDoubleOrNull() ?: 0.0) > (initialState.toDoubleOrNull() ?: 0.0)
-            (slideInVertically(tween(300)) { if (up) it else -it } + fadeIn(tween(300)))
-                .togetherWith(slideOutVertically(tween(300)) { if (up) -it else it } + fadeOut(tween(200)))
-        },
+        targetState = state.mode.usesSetpoint,
+        transitionSpec = { fadeIn(tween(200)).togetherWith(fadeOut(tween(150))) },
         label = "readout",
-    ) { value ->
-        Text(
-            value,
-            style = TextStyle(
-                fontFamily = RoundedFamily, fontWeight = FontWeight.SemiBold,
-                fontSize = (height.value * 1.05f).sp, color = MitraColors.acDisplay, textAlign = TextAlign.End,
-                shadow = Shadow(MitraColors.acDisplay.copy(alpha = 0.35f), blurRadius = height.value * 0.4f),
-            ),
-            maxLines = 1,
-        )
+    ) { usesSetpoint ->
+        if (usesSetpoint) {
+            // Like the big temperature, only the digits that change roll.
+            RollingText(ACState.formatTemperature(state.setpoint).dropLast(1), up, durationMs = 300) {
+                Text(it.toString(), style = style, maxLines = 1)
+            }
+        } else {
+            Text("FAN", style = style, maxLines = 1)
+        }
     }
 }
 

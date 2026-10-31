@@ -17,15 +17,20 @@ object MitraColors {
     val surface = Color(0xFF12151F)
     val glass = Color(0x1FFFFFFF)
     val glassBorder = Color(0x14FFFFFF)
+    /** The controls' panel: dark frosted glass that lets the air show through. */
+    val panel = Color(0xB80E111C)
     val secondaryText = Color(0x99FFFFFF)
 
-    /** The AC's display: its digits on the unit, and the Display control that switches them. */
+    /** The AC's display: the digits on the unit. */
     val acDisplay = Color(0xFF1A73F2)
 
     val eco = Color(0xFF1C8045)
     val powerful = Color(0xFFCC570F)
     val converti = Color(0xFF007380)
     val nanoe = Color(0xFF6B52D1)
+    /** A lit bulb: warm incandescent amber, light enough that its icon is dark. */
+    val bulb = Color(0xFFFFBD5C)
+    val bulbIcon = Color(0xFF4D2B00)
 
     val offline = Color(0xFFB86A00)
     val preview = Color(0xFFFFD60A)

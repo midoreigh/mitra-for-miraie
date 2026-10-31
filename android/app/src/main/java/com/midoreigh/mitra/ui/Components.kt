@@ -1,15 +1,25 @@
 package com.midoreigh.mitra.ui
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandHorizontally
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkHorizontally
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -30,7 +40,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -39,12 +51,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.layout.boundsInWindow
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -57,14 +73,15 @@ import androidx.compose.ui.unit.IntRect
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.roundToIntRect
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupPositionProvider
 import com.midoreigh.mitra.model.Louver
-import kotlinx.coroutines.delay
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
+import kotlinx.coroutines.delay
 
 /**
  * Makes something tappable, with a hint naming it on long-press: shown above it (below only
@@ -78,6 +95,9 @@ fun Modifier.hinted(
     role: Role = Role.Button,
     onClick: () -> Unit,
 ): Modifier = this
+    // The hint's popup belongs to whichever layout called rememberHint (often the whole bar),
+    // so it's placed from this control's own bounds instead.
+    .onGloballyPositioned { hintState.anchor = it.boundsInWindow().roundToIntRect() }
     .semantics { contentDescription = hint }
     .combinedClickable(
         enabled = enabled,
@@ -90,6 +110,8 @@ fun Modifier.hinted(
 class HintState {
     var visible by mutableStateOf(false)
         private set
+    /** The control's bounds in the window, where the hint points. */
+    var anchor: IntRect? = null
     private var shown = 0
     var pending by mutableStateOf(0)
         private set
@@ -109,13 +131,14 @@ class HintState {
 fun rememberHint(text: String): HintState {
     val state = remember { HintState() }
     val haptics = LocalHapticFeedback.current
+    val gap = with(LocalDensity.current) { 8.dp.roundToPx() }
     if (state.visible) {
         LaunchedEffect(state.pending) {
             haptics.performHapticFeedback(HapticFeedbackType.LongPress)
             delay(1_800)
             state.hide()
         }
-        Popup(popupPositionProvider = AboveProvider, onDismissRequest = state::hide) {
+        Popup(popupPositionProvider = remember(state, gap) { AboveProvider(state, gap) }, onDismissRequest = state::hide) {
             Text(
                 text,
                 color = Color.White,
@@ -130,13 +153,15 @@ fun rememberHint(text: String): HintState {
     return state
 }
 
-private object AboveProvider : PopupPositionProvider {
+/** Centres the hint just above its control, or below when there's no room above. */
+private class AboveProvider(private val state: HintState, private val gap: Int) : PopupPositionProvider {
     override fun calculatePosition(anchorBounds: IntRect, windowSize: IntSize, layoutDirection: LayoutDirection, popupContentSize: IntSize): IntOffset {
-        val gap = 12
-        val x = (anchorBounds.center.x - popupContentSize.width / 2)
-            .coerceIn(16, (windowSize.width - popupContentSize.width - 16).coerceAtLeast(16))
-        val above = anchorBounds.top - popupContentSize.height - gap
-        val y = if (above >= 0) above else anchorBounds.bottom + gap
+        val control = state.anchor ?: anchorBounds
+        val margin = gap * 2
+        val x = (control.center.x - popupContentSize.width / 2)
+            .coerceIn(margin, (windowSize.width - popupContentSize.width - margin).coerceAtLeast(margin))
+        val above = control.top - popupContentSize.height - gap
+        val y = if (above >= 0) above else control.bottom + gap
         return IntOffset(x, y)
     }
 }
@@ -163,19 +188,26 @@ fun <T> Segments(
     prominent: Boolean = false,
     enabled: Boolean = true,
     height: Dp = 40.dp,
+    /** When set, the selected segment widens to name its value beside the icon. */
+    label: ((T) -> String)? = null,
     content: @Composable (value: T, color: Color) -> Unit,
 ) {
     BoxWithConstraints(modifier.fillMaxWidth().height(height).glass().padding(3.dp)) {
-        val width = maxWidth / values.size
         val index = values.indexOf(selection)
-        val offset by animateDpAsState(width * index.coerceAtLeast(0), spring(dampingRatio = 0.8f, stiffness = Spring.StiffnessMediumLow), label = "pill")
+        val wide = if (label != null && index >= 0) LABELED_SEGMENT else 1f
+        // Every segment is one unit wide, except a labelled selection.
+        val unit = maxWidth / (values.size - 1 + wide)
+        val motion = spring<Dp>(dampingRatio = 0.8f, stiffness = Spring.StiffnessMediumLow)
+        val offset by animateDpAsState(unit * index.coerceAtLeast(0), motion, label = "pill")
+        val pillWidth by animateDpAsState(unit * wide, motion, label = "pillWidth")
         val fill by animateColorAsState(if (prominent) tint else Color.White.copy(alpha = 0.92f), tween(250), label = "fill")
         if (index >= 0) {
-            Box(Modifier.offset(x = offset).width(width).fillMaxHeight().background(fill, CircleShape))
+            Box(Modifier.offset(x = offset).width(pillWidth).fillMaxHeight().background(fill, CircleShape))
         }
         Row(Modifier.fillMaxWidth().fillMaxHeight()) {
             values.forEach { value ->
                 val isSelected = value == selection
+                val width by animateDpAsState(if (isSelected) unit * wide else unit, motion, label = "segment")
                 val hintState = rememberHint(hint(value))
                 val color by animateColorAsState(
                     when {
@@ -194,24 +226,23 @@ fun <T> Segments(
                         .hinted(hint(value), hintState, enabled) { select(value) },
                     contentAlignment = Alignment.Center,
                 ) {
-                    content(value, color)
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        content(value, color)
+                        AnimatedVisibility(isSelected && label != null, enter = fadeIn(tween(200)) + expandHorizontally(), exit = fadeOut(tween(100)) + shrinkHorizontally()) {
+                            Text(
+                                label?.invoke(value) ?: "", color = color, fontSize = 14.sp, fontWeight = FontWeight.SemiBold,
+                                maxLines = 1, modifier = Modifier.padding(start = 6.dp),
+                            )
+                        }
+                    }
                 }
             }
         }
     }
 }
 
-/** A bar with its name and current value on the left, e.g. "Fan / Auto". */
-@Composable
-fun LabeledBar(title: String, value: String, bar: @Composable () -> Unit) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Column(Modifier.width(64.dp)) {
-            Text(title, fontSize = 12.sp, color = MitraColors.secondaryText, maxLines = 1)
-            Text(value, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = Color.White, maxLines = 1)
-        }
-        Box(Modifier.weight(1f)) { bar() }
-    }
-}
+/** How many plain segments' width a labelled selection takes. */
+private const val LABELED_SEGMENT = 2.3f
 
 /** A round glass button with an icon. */
 @Composable
@@ -315,6 +346,76 @@ fun WindCircleGlyph(color: Color) {
     }
 }
 
+/**
+ * A tornado for high fan speed: curved bands, each the near side of a spinning ring, that
+ * narrow and sway down to a tail. (Straight bars read as a funnel or a filter.)
+ */
+@Composable
+fun TornadoGlyph(color: Color) {
+    Canvas(Modifier.size(22.dp)) {
+        val stroke = Stroke(1.8.dp.toPx(), cap = StrokeCap.Round)
+        val w = size.width
+        val h = size.height
+        // Each band's centre, width and height as fractions of the glyph, top to bottom.
+        val bands = listOf(
+            Triple(0.50f, 0.94f, 0.22f),
+            Triple(0.55f, 0.70f, 0.18f),
+            Triple(0.60f, 0.48f, 0.15f),
+            Triple(0.55f, 0.30f, 0.12f),
+        )
+        bands.forEachIndexed { i, (cx, bw, bh) ->
+            val top = h * (0.04f + i * 0.2f)
+            drawArc(
+                color, startAngle = 8f, sweepAngle = 164f, useCenter = false,
+                topLeft = Offset(w * (cx - bw / 2), top), size = Size(w * bw, h * bh), style = stroke,
+            )
+        }
+        // The top band's far side too, so the top reads as the cloud's open mouth.
+        drawArc(
+            color.copy(alpha = color.alpha * 0.55f), startAngle = 195f, sweepAngle = 150f, useCenter = false,
+            topLeft = Offset(w * 0.03f, h * 0.04f), size = Size(w * 0.94f, h * 0.22f), style = stroke,
+        )
+        // The tail, curling down to the ground.
+        val tail = Path().apply {
+            moveTo(w * 0.52f, h * 0.76f)
+            quadraticTo(w * 0.40f, h * 0.88f, w * 0.48f, h * 0.97f)
+        }
+        drawPath(tail, color, style = stroke)
+    }
+}
+
+/** Whether [value] last moved up (or hasn't moved), so a number can roll the right way. */
+@Composable
+fun rememberRising(value: Double): Boolean {
+    var shown by remember { mutableStateOf(value) }
+    val up = value >= shown
+    SideEffect { shown = value }
+    return up
+}
+
+/**
+ * [text] with each character rolling on its own when it changes, so 26 to 27 rolls just the
+ * 6. All roll the way the number moved ([up]), even a 9 turning to 0 on the way up.
+ */
+@Composable
+fun RollingText(text: String, up: Boolean, durationMs: Int = 280, character: @Composable (Char) -> Unit) {
+    Row {
+        text.forEachIndexed { i, c ->
+            key(i) {
+                AnimatedContent(
+                    targetState = c,
+                    transitionSpec = {
+                        (slideInVertically(tween(durationMs)) { if (up) it / 2 else -it / 2 } + fadeIn(tween(durationMs)))
+                            .togetherWith(slideOutVertically(tween(durationMs)) { if (up) -it / 2 else it / 2 } + fadeOut(tween(durationMs * 2 / 3)))
+                    },
+                    contentAlignment = Alignment.Center,
+                    label = "character",
+                ) { character(it) }
+            }
+        }
+    }
+}
+
 /** One feature button: an icon, filled in the feature's colour while on. */
 @Composable
 fun FeatureButton(
@@ -324,6 +425,8 @@ fun FeatureButton(
     tint: Color,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
+    /** The icon's colour while on. */
+    iconColor: Color = Color.White,
     onClick: () -> Unit,
 ) {
     val hintState = rememberHint(hint)
@@ -331,7 +434,7 @@ fun FeatureButton(
     val shape = RoundedCornerShape(50)
     Box(
         modifier
-            .height(44.dp)
+            .height(50.dp)
             .clip(shape)
             .background(fill, shape)
             .border(1.dp, if (isOn) Color.Transparent else MitraColors.glassBorder, shape)
@@ -339,6 +442,8 @@ fun FeatureButton(
             .hinted(hint, hintState, enabled, role = Role.Switch, onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
-        Icon(icon, null, tint = if (isOn) Color.White else MitraColors.secondaryText, modifier = Modifier.size(22.dp))
+        // Disabled, the panel dims the fill, so a dark icon (the bulb's) would vanish into it.
+        val onColor = if (enabled) iconColor else Color.White
+        Icon(icon, null, tint = if (isOn) onColor else MitraColors.secondaryText, modifier = Modifier.size(22.dp))
     }
 }
