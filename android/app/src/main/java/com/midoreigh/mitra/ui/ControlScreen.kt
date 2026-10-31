@@ -145,7 +145,7 @@ private fun ControlPanel(ui: UiState, store: ACStore) {
             .clip(shape)
             .background(MitraColors.panel, shape)
             .border(1.dp, MitraColors.glassBorder, shape)
-            .padding(16.dp),
+            .padding(horizontal = 20.dp, vertical = 22.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         AnimatedVisibility(!state.isOnline, enter = expandVertically() + fadeIn(), exit = shrinkVertically() + fadeOut()) {
@@ -382,14 +382,15 @@ private fun OfflineBanner(name: String) {
 
 @Composable
 private fun FanBar(state: ACState, enabled: Boolean, select: (FanSpeed) -> Unit) {
-    LabeledBar("Fan", state.fan.title) {
-        Segments(FanSpeed.entries, state.fan, select, hint = { it.title }, enabled = enabled, height = 48.dp) { speed, color ->
-            when (speed) {
-                FanSpeed.AUTO -> FanAutoGlyph(color)
-                FanSpeed.MEDIUM -> WindCircleGlyph(color)
-                FanSpeed.HIGH -> SpinningFanGlyph(color)
-                else -> Icon(speed.icon, null, tint = color, modifier = Modifier.size(21.dp))
-            }
+    Segments(
+        FanSpeed.entries, state.fan, select, hint = { "Fan: ${it.title}" }, label = { it.title },
+        enabled = enabled, height = 48.dp,
+    ) { speed, color ->
+        when (speed) {
+            FanSpeed.AUTO -> FanAutoGlyph(color)
+            FanSpeed.MEDIUM -> WindCircleGlyph(color)
+            FanSpeed.HIGH -> SpinningFanGlyph(color)
+            else -> Icon(speed.icon, null, tint = color, modifier = Modifier.size(21.dp))
         }
     }
 }
@@ -402,13 +403,11 @@ private val FanSpeed.icon: ImageVector
 
 @Composable
 private fun ModeBar(state: ACState, ui: UiState, enabled: Boolean, select: (ACMode) -> Unit) {
-    LabeledBar("Mode", state.mode.title) {
-        Segments(
-            ui.selectedCapabilities.modes, state.mode, select, hint = { it.title },
-            tint = state.mode.controlTint, prominent = true, enabled = enabled, height = 48.dp,
-        ) { mode, color ->
-            if (mode == ACMode.FAN) FanGlyph(color) else Icon(mode.icon, null, tint = color, modifier = Modifier.size(21.dp))
-        }
+    Segments(
+        ui.selectedCapabilities.modes, state.mode, select, hint = { "Mode: ${it.title}" }, label = { it.title },
+        tint = state.mode.controlTint, prominent = true, enabled = enabled, height = 48.dp,
+    ) { mode, color ->
+        if (mode == ACMode.FAN) FanGlyph(color) else Icon(mode.icon, null, tint = color, modifier = Modifier.size(21.dp))
     }
 }
 

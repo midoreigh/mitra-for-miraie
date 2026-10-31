@@ -1,10 +1,15 @@
 package com.midoreigh.mitra.ui
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandHorizontally
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -177,19 +182,26 @@ fun <T> Segments(
     prominent: Boolean = false,
     enabled: Boolean = true,
     height: Dp = 40.dp,
+    /** When set, the selected segment widens to name its value beside the icon. */
+    label: ((T) -> String)? = null,
     content: @Composable (value: T, color: Color) -> Unit,
 ) {
     BoxWithConstraints(modifier.fillMaxWidth().height(height).glass().padding(3.dp)) {
-        val width = maxWidth / values.size
         val index = values.indexOf(selection)
-        val offset by animateDpAsState(width * index.coerceAtLeast(0), spring(dampingRatio = 0.8f, stiffness = Spring.StiffnessMediumLow), label = "pill")
+        val wide = if (label != null && index >= 0) LABELED_SEGMENT else 1f
+        // Every segment is one unit wide, except a labelled selection.
+        val unit = maxWidth / (values.size - 1 + wide)
+        val motion = spring<Dp>(dampingRatio = 0.8f, stiffness = Spring.StiffnessMediumLow)
+        val offset by animateDpAsState(unit * index.coerceAtLeast(0), motion, label = "pill")
+        val pillWidth by animateDpAsState(unit * wide, motion, label = "pillWidth")
         val fill by animateColorAsState(if (prominent) tint else Color.White.copy(alpha = 0.92f), tween(250), label = "fill")
         if (index >= 0) {
-            Box(Modifier.offset(x = offset).width(width).fillMaxHeight().background(fill, CircleShape))
+            Box(Modifier.offset(x = offset).width(pillWidth).fillMaxHeight().background(fill, CircleShape))
         }
         Row(Modifier.fillMaxWidth().fillMaxHeight()) {
             values.forEach { value ->
                 val isSelected = value == selection
+                val width by animateDpAsState(if (isSelected) unit * wide else unit, motion, label = "segment")
                 val hintState = rememberHint(hint(value))
                 val color by animateColorAsState(
                     when {
@@ -208,25 +220,23 @@ fun <T> Segments(
                         .hinted(hint(value), hintState, enabled) { select(value) },
                     contentAlignment = Alignment.Center,
                 ) {
-                    content(value, color)
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        content(value, color)
+                        AnimatedVisibility(isSelected && label != null, enter = fadeIn(tween(200)) + expandHorizontally(), exit = fadeOut(tween(100)) + shrinkHorizontally()) {
+                            Text(
+                                label?.invoke(value) ?: "", color = color, fontSize = 14.sp, fontWeight = FontWeight.SemiBold,
+                                maxLines = 1, modifier = Modifier.padding(start = 6.dp),
+                            )
+                        }
+                    }
                 }
             }
         }
     }
 }
 
-/** A bar with its name and current value on the left, e.g. "Fan / Auto". */
-@Composable
-fun LabeledBar(title: String, value: String, bar: @Composable () -> Unit) {
-    // The label sits above, so the bar gets the full width of the phone.
-    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        Row(Modifier.padding(start = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-            Text("$title · ", fontSize = 13.sp, color = MitraColors.secondaryText, maxLines = 1)
-            Text(value, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = Color.White, maxLines = 1)
-        }
-        bar()
-    }
-}
+/** How many plain segments' width a labelled selection takes. */
+private const val LABELED_SEGMENT = 2.3f
 
 /** A round glass button with an icon. */
 @Composable
