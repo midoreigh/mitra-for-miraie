@@ -195,6 +195,10 @@ Mitra puts your MirAIe AC in your Mac's menu bar, with the set temperature besid
 control one click away, and Siri and Shortcuts. It runs on macOS 26 or later, on Apple silicon or
 Intel.
 
+**Can I use it from a web browser?**
+Yes. The [Mitra web app](https://mitra.midoreigh.com/app) lets you control your real AC directly
+from any browser without installing anything.
+
 **Is my password safe?**
 You sign in with your MirAIe account. Your password is kept in your Mac's Keychain, or encrypted
 with the Android Keystore on your phone, and is only ever sent to MirAIe's own servers. Mitra has
