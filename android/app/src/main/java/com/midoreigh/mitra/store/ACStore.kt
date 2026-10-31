@@ -18,6 +18,7 @@ import com.midoreigh.mitra.model.ACState
 import com.midoreigh.mitra.model.Converti
 import com.midoreigh.mitra.model.Device
 import com.midoreigh.mitra.model.FanSpeed
+import com.midoreigh.mitra.model.SleepProfile
 import com.midoreigh.mitra.widget.Surfaces
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -53,11 +54,20 @@ data class UiState(
     val capabilities: Map<String, ACCapabilities> = emptyMap(),
     /** The username of the last sign-in attempt, to refill the form. */
     val lastUsername: String = "",
+    /** The user's own sleep profiles, shared by every AC. */
+    val sleepProfiles: List<SleepProfile> = emptyList(),
 ) {
     val selected: Device? get() = devices.firstOrNull { it.id == selectedId } ?: devices.firstOrNull()
     val state: ACState get() = selected?.let { states[it.id] } ?: ACState()
     val selectedCapabilities: ACCapabilities get() = selected?.let { capabilities[it.id] } ?: ACCapabilities()
     val canControl: Boolean get() = selected != null && state.isOnline
+
+    /** Gentle, built into the AC, then the user's own. */
+    val allSleepProfiles: List<SleepProfile> get() = listOf(SleepProfile.GENTLE) + sleepProfiles
+
+    /** The profile the AC is running, if Mitra knows it (it may have been started in the MirAIe app). */
+    val runningSleepProfile: SleepProfile?
+        get() = state.sleepProfile?.let { id -> allSleepProfiles.firstOrNull { it.id == id } }
 }
 
 /**
@@ -67,6 +77,7 @@ data class UiState(
 class ACStore private constructor(private val context: Context) {
     private val service = MirAIeService.get(context)
     private val shared = service.shared
+    private val profiles = ProfileStore(context)
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private val mqtt = MqttClient()
     private val clientId = "mitra-android-" + UUID.randomUUID().toString().take(8)
@@ -96,6 +107,7 @@ class ACStore private constructor(private val context: Context) {
             selectedId = shared.selectedDeviceId,
             capabilities = devices.associate { it.id to shared.capabilities(it.id) },
             lastUsername = service.secrets.credentials?.username ?: "",
+            sleepProfiles = profiles.sleepProfiles,
         )
         configureMqtt()
         observeSystem()
@@ -139,7 +151,7 @@ class ACStore private constructor(private val context: Context) {
         reconnectJob?.cancel()
         mqtt.disconnect()
         service.signOut()
-        _ui.value = UiState()
+        _ui.value = UiState(sleepProfiles = current.sleepProfiles)
         scheduleSurfacesUpdate()
     }
 
@@ -153,7 +165,7 @@ class ACStore private constructor(private val context: Context) {
         val ui = current
         if (ui.isPreviewing == on) return
         if (ui.isDemo) {
-            if (!on) _ui.value = UiState(lastUsername = ui.lastUsername)
+            if (!on) _ui.value = UiState(lastUsername = ui.lastUsername, sleepProfiles = ui.sleepProfiles)
             return
         }
         if (on) {
@@ -237,6 +249,26 @@ class ACStore private constructor(private val context: Context) {
                 }
             }
         }
+    }
+
+    /** Stops the running sleep profile, sending back the hours it was started with if known. */
+    fun stopSleep() {
+        val id = current.state.sleepProfile ?: return
+        send(ACCommand.StopSleep(id, current.runningSleepProfile?.wireTemperatures ?: emptyList()))
+    }
+
+    // Sleep profiles
+
+    fun save(profile: SleepProfile) {
+        val list = current.sleepProfiles
+        setProfiles(if (list.any { it.id == profile.id }) list.map { if (it.id == profile.id) profile else it } else list + profile)
+    }
+
+    fun deleteSleepProfile(id: String) = setProfiles(current.sleepProfiles.filter { it.id != id })
+
+    private fun setProfiles(list: List<SleepProfile>) {
+        profiles.sleepProfiles = list
+        _ui.update { it.copy(sleepProfiles = list) }
     }
 
     // Live connection

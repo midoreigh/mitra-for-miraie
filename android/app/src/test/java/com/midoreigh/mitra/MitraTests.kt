@@ -7,6 +7,7 @@ import com.midoreigh.mitra.model.ACCommand
 import com.midoreigh.mitra.model.ACMode
 import com.midoreigh.mitra.model.ACState
 import com.midoreigh.mitra.model.Louver
+import com.midoreigh.mitra.model.SleepProfile
 import org.json.JSONObject
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -88,5 +89,63 @@ class MitraTests {
         assertEquals("a/status", incoming.topic)
         assertEquals("{}", String(incoming.payload))
         assertTrue(incoming.retained)
+    }
+
+    @Test fun sendsTimersAsMinutesFromNow() {
+        val now = System.currentTimeMillis()
+        val message = ACCommand.message(listOf(ACCommand.Timers(off = now + 4 * 3_600_000L, on = null)))
+        assertEquals(14, message["ki"])
+        val timers = message["actm"] as List<*>
+        assertEquals(4 * 3600.0, (timers[0] as Int).toDouble(), 60.0)
+        assertEquals(-1, timers[1])
+        // To the minute: 20 s past the minute, 4 h later lands on the minute, 20 s short of 4 h.
+        val minute = 1_800_000_000_000L - 1_800_000_000_000L % 60_000
+        assertEquals(4 * 3600 - 20, ACCommand.seconds(until = minute + 4 * 3_600_000L, now = minute + 20_000))
+        assertEquals(-1, ACCommand.seconds(null))
+        assertEquals("[14400,-1]", JSONObject(mapOf("actm" to listOf(14400, -1))).getJSONArray("actm").toString())
+    }
+
+    @Test fun readsTimersAsTimes() {
+        val status = JSONObject("""{"actm":[1793461838,-1]}""")
+        val state = ACState().applying(mapOf("actm" to status.get("actm")))
+        assertEquals(1_793_461_838_000L, state.offTimer)
+        assertNull(state.onTimer)
+        // Confirmed when the AC's time is within a couple of minutes of what was asked.
+        val asked = ACCommand.Timers(off = 1_793_461_838_000L + 30_000, on = null)
+        assertTrue(ACCommand.isConfirmed(listOf(asked), mapOf("actm" to status.get("actm"))))
+        assertFalse(ACCommand.isConfirmed(listOf(asked.copy(on = 1_793_461_838_000L)), mapOf("actm" to status.get("actm"))))
+    }
+
+    @Test fun sendsSleepProfiles() {
+        val profile = SleepProfile("abc123def0", "Night", listOf(26.0, 24.0, 27.0), turnsOffAtEnd = true)
+        val message = ACCommand.message(listOf(ACCommand.StartSleep(profile)))
+        assertEquals(12, message["ki"])
+        assertEquals("on", message["acsp"])
+        assertEquals("abc123def0", message["pid"])
+        assertEquals(listOf("26.0", "24.0", "27.0", "00.0"), message["temps"])
+        assertTrue(ACCommand.isConfirmed(listOf(ACCommand.StartSleep(profile)), mapOf("acsp" to "abc123def0")))
+        val stop = ACCommand.message(listOf(ACCommand.StopSleep("abc123def0", profile.wireTemperatures)))
+        assertEquals("off", stop["acsp"])
+        assertTrue(ACCommand.isConfirmed(listOf(ACCommand.StopSleep("abc123def0", emptyList())), mapOf("acsp" to "none")))
+        assertEquals(10, SleepProfile.newId().length)
+    }
+
+    @Test fun readsSleepStatus() {
+        val running = ACState().applying(mapOf("acsp" to "abc123def0", "sleep_indx" to "1"))
+        assertEquals("abc123def0", running.sleepProfile)
+        assertEquals(1, running.sleepHour)
+        val stopped = running.applying(mapOf("acsp" to "none"))
+        assertNull(stopped.sleepProfile)
+        assertNull(stopped.sleepHour)
+        // Started locally: the first hour's temperature is set at once.
+        val started = ACState(setpoint = 22.0).applying(ACCommand.StartSleep(SleepProfile(name = "Night", temperatures = listOf(26.0), turnsOffAtEnd = false)))
+        assertEquals(26.0, started.setpoint, 0.0)
+        assertEquals(0, started.sleepHour)
+    }
+
+    @Test fun gentleFollowsTheSetTemperature() {
+        assertEquals(listOf(22.0, 22.0, 22.0, 23.0, 23.0, 23.0, 24.0, 24.0), SleepProfile.GENTLE.schedule(from = 22.0))
+        assertEquals(listOf("24.0", "24.0", "24.0", "25.0", "25.0", "25.0", "26.0", "26.0", "00.0"), SleepProfile.GENTLE.wireTemperatures)
+        assertEquals("default", SleepProfile.GENTLE.id)
     }
 }

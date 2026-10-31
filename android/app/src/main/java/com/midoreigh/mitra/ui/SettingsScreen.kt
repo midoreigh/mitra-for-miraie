@@ -25,6 +25,10 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -33,11 +37,19 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.midoreigh.mitra.model.ACCapabilities
 import com.midoreigh.mitra.model.ACMode
+import com.midoreigh.mitra.model.SleepProfile
 import com.midoreigh.mitra.store.ACStore
 import com.midoreigh.mitra.store.UiState
 
 @Composable
 fun SettingsScreen(ui: UiState, store: ACStore, username: String?, close: () -> Unit) {
+    var editing by remember { mutableStateOf<SleepProfile?>(null) }
+    editing?.let { profile ->
+        SleepProfileEditor(
+            profile, isNew = ui.sleepProfiles.none { it.id == profile.id },
+            save = store::save, delete = { store.deleteSleepProfile(profile.id) }, close = { editing = null },
+        )
+    }
     Column(
         Modifier
             .fillMaxSize()
@@ -77,6 +89,14 @@ fun SettingsScreen(ui: UiState, store: ACStore, username: String?, close: () -> 
                     }
                 }
             }
+        }
+
+        Section(
+            "Sleep profiles",
+            footer = "Set a temperature for each hour of the night, then start the profile with the Sleep button. " +
+                "Your AC runs it by itself. Gentle is built into the AC and works from whatever temperature it's set to.",
+        ) {
+            SleepProfileList(ui.sleepProfiles) { editing = it }
         }
 
         ui.devices.forEach { device ->

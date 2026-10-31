@@ -31,6 +31,9 @@ object MitraColors {
     /** A lit bulb: warm incandescent amber, light enough that its icon is dark. */
     val bulb = Color(0xFFFFBD5C)
     val bulbIcon = Color(0xFF4D2B00)
+    /** Timers and sleep profiles, as on the Mac. */
+    val timer = Color(0xFF2966C7)
+    val sleep = Color(0xFF4D429E)
 
     val offline = Color(0xFFB86A00)
     val preview = Color(0xFFFFD60A)

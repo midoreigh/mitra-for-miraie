@@ -1,5 +1,6 @@
 package com.midoreigh.mitra.model
 
+import org.json.JSONArray
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
@@ -117,6 +118,12 @@ data class ACState(
     /** Signal strength the AC reports for its own Wi-Fi connection, in dBm. */
     val wifiSignal: Int? = null,
     val firmware: String? = null,
+    /** When the AC will turn itself off or on, in milliseconds since 1970, if a timer is set. */
+    val offTimer: Long? = null,
+    val onTimer: Long? = null,
+    /** The ID of the sleep profile the AC is running, and which hour of it (from 0). */
+    val sleepProfile: String? = null,
+    val sleepHour: Int? = null,
     val updatedAt: Long = 0,
 ) {
     /** Merges a full or partial MirAIe status message. */
@@ -139,12 +146,30 @@ data class ACState(
         string(fields["rmtmp"])?.let { value ->
             roomTemperature(value, s.firmware)?.let { s = s.copy(roomTemperature = it) }
         }
+        // Timers come back as the time they go off; -1 when not set.
+        list(fields["actm"])?.takeIf { it.size == 2 }?.let { s = s.copy(offTimer = timer(it[0]), onTimer = timer(it[1])) }
+        string(fields["acsp"])?.let { value ->
+            val id = value.takeUnless { it == "none" || it == "off" || it.isEmpty() }
+            s = s.copy(sleepProfile = id, sleepHour = if (id == null) null else s.sleepHour)
+        }
+        double(fields["sleep_indx"])?.let { s = s.copy(sleepHour = it.toInt()) }
         return s.copy(updatedAt = System.currentTimeMillis())
     }
 
     /** Applies commands locally, for an optimistic update before the AC confirms them. */
     fun applying(vararg commands: ACCommand): ACState =
-        commands.fold(this) { state, command -> state.applying(command.fields) }
+        commands.fold(this) { state, command ->
+            val now = System.currentTimeMillis()
+            when (command) {
+                is ACCommand.Timers -> state.copy(offTimer = command.off, onTimer = command.on, updatedAt = now)
+                is ACCommand.StartSleep -> state.copy(
+                    sleepProfile = command.profile.id, sleepHour = 0, updatedAt = now,
+                    setpoint = command.profile.schedule(state.setpoint).firstOrNull() ?: state.setpoint,
+                )
+                is ACCommand.StopSleep -> state.copy(sleepProfile = null, sleepHour = null, updatedAt = now)
+                else -> state.applying(command.fields)
+            }
+        }
 
     /** What the AC is doing, in a few words, e.g. "Cooling to 24°". */
     val summary: String
@@ -204,6 +229,15 @@ data class ACState(
             is String -> value.trim().toDoubleOrNull()
             else -> null
         }
+
+        /** A JSON array, as decoded from a message or written in a command. */
+        fun list(value: Any?): List<Any?>? = when (value) {
+            is JSONArray -> (0 until value.length()).map { value.opt(it) }
+            is List<*> -> value
+            else -> null
+        }
+
+        private fun timer(value: Any?): Long? = double(value)?.takeIf { it > 0 }?.let { (it * 1000).toLong() }
     }
 }
 
@@ -220,6 +254,14 @@ sealed interface ACCommand {
     data class Display(val on: Boolean) : ACCommand
     data class Nanoe(val on: Boolean) : ACCommand
     data class ConvertiLevel(val level: Int) : ACCommand
+    /**
+     * Sets both timers at once, in milliseconds since 1970: the AC replaces both with every
+     * command, so the one not being changed has to be sent again. null clears a timer.
+     */
+    data class Timers(val off: Long?, val on: Long?) : ACCommand
+    data class StartSleep(val profile: SleepProfile) : ACCommand
+    /** Stops the running profile, by its ID; [temperatures] as last sent, if known. */
+    data class StopSleep(val id: String, val temperatures: List<String>) : ACCommand
 
     /** The status fields this command changes. */
     val fields: Map<String, Any>
@@ -238,12 +280,24 @@ sealed interface ACCommand {
             // Converti replaces Eco and Powerful, as in the MirAIe app.
             is ConvertiLevel -> if (level == Converti.OFF) mapOf("cnv" to Converti.OFF)
             else mapOf("cnv" to level, "acem" to "off", "acpm" to "off")
+            // Sent as seconds from now, which the AC adds to its own clock.
+            is Timers -> mapOf("actm" to listOf(seconds(off), seconds(on)))
+            is StartSleep -> mapOf("acsp" to "on", "pid" to profile.id, "temps" to profile.wireTemperatures)
+            is StopSleep -> mapOf("acsp" to "off", "pid" to id, "temps" to temperatures)
+        }
+
+    /** The MirAIe app's command kind for each; the AC seems to accept 1 for everything else. */
+    val kind: Int
+        get() = when (this) {
+            is Timers -> 14
+            is StartSleep, is StopSleep -> 12
+            else -> 1
         }
 
     companion object {
         /** The MQTT message for one or more commands, as a JSON object's fields. */
         fun message(commands: List<ACCommand>): Map<String, Any> {
-            val message = sortedMapOf<String, Any>("ki" to 1, "cnt" to "an", "sid" to "1")
+            val message = sortedMapOf<String, Any>("ki" to (commands.firstOrNull()?.kind ?: 1), "cnt" to "an", "sid" to "1")
             commands.forEach { message.putAll(it.fields) }
             return message
         }
@@ -251,6 +305,19 @@ sealed interface ACCommand {
         /** Whether a status message shows every field these commands set. */
         fun isConfirmed(commands: List<ACCommand>, status: Map<String, Any?>): Boolean =
             commands.all { command ->
+                when (command) {
+                    is Timers -> {
+                        // The AC reports the times on its own clock, which can be a little out.
+                        val reported = ACState.list(status["actm"])?.takeIf { it.size == 2 } ?: return@all false
+                        val state = ACState().applying(mapOf("actm" to reported))
+                        return@all listOf(command.off to state.offTimer, command.on to state.onTimer).all { (expected, actual) ->
+                            if (expected == null || actual == null) expected == actual else abs(expected - actual) < 120_000
+                        }
+                    }
+                    is StartSleep -> return@all ACState.string(status["acsp"]) == command.profile.id
+                    is StopSleep -> return@all ACState.string(status["acsp"]) == "none"
+                    else -> {}
+                }
                 command.fields.all { (key, expected) ->
                     val actual = status[key] ?: return@all false
                     val lhs = ACState.double(expected)
@@ -264,6 +331,16 @@ sealed interface ACCommand {
             val clamped = temperature.coerceIn(ACState.MIN_TEMPERATURE, ACState.MAX_TEMPERATURE)
             val halves = (clamped * 2).roundToInt() / 2.0
             return if (halves == Math.rint(halves)) halves.toInt().toString() else halves.toString()
+        }
+
+        /**
+         * Whole minutes from now, as the MirAIe app sends them, so a timer lands on the minute;
+         * -1 for no timer.
+         */
+        fun seconds(until: Long?, now: Long = System.currentTimeMillis()): Int {
+            if (until == null) return -1
+            val minute = Math.round(until / 60_000.0) * 60_000
+            return maxOf(60, Math.round((minute - now) / 1000.0).toInt())
         }
 
         private fun louver(position: Int) = position.coerceIn(Louver.SWING, Louver.positions.last)

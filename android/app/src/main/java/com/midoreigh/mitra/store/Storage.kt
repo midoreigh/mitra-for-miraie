@@ -12,6 +12,7 @@ import com.midoreigh.mitra.model.ACMode
 import com.midoreigh.mitra.model.ACState
 import com.midoreigh.mitra.model.Device
 import com.midoreigh.mitra.model.FanSpeed
+import com.midoreigh.mitra.model.SleepProfile
 import org.json.JSONArray
 import org.json.JSONObject
 import java.security.KeyStore
@@ -146,6 +147,8 @@ class SharedStore(context: Context) {
         .put("nanoe", s.nanoe?.let { if (it) "on" else "off" } ?: "")
         .put("roomTemperature", s.roomTemperature ?: JSONObject.NULL)
         .put("isOnline", s.isOnline).put("firmware", s.firmware ?: "").put("updatedAt", s.updatedAt)
+        .put("offTimer", s.offTimer ?: 0).put("onTimer", s.onTimer ?: 0)
+        .put("sleepProfile", s.sleepProfile ?: "").put("sleepHour", s.sleepHour ?: -1)
 
     private fun decodeState(o: JSONObject): ACState {
         val fields = o.toMap()
@@ -164,7 +167,35 @@ class SharedStore(context: Context) {
             roomTemperature = ACState.double(fields["roomTemperature"]),
             isOnline = o.optBoolean("isOnline", true),
             firmware = o.optString("firmware").ifEmpty { null },
+            offTimer = o.optLong("offTimer").takeIf { it > 0 },
+            onTimer = o.optLong("onTimer").takeIf { it > 0 },
+            sleepProfile = o.optString("sleepProfile").ifEmpty { null },
+            sleepHour = o.optInt("sleepHour", -1).takeIf { it >= 0 },
             updatedAt = o.optLong("updatedAt"),
         )
     }
+}
+
+/**
+ * The user's own sleep profiles, shared by every AC. Kept apart from [SharedStore] so they
+ * stay after signing out: they hold nothing about the account.
+ */
+class ProfileStore(context: Context) {
+    private val prefs: SharedPreferences = context.getSharedPreferences("profiles", Context.MODE_PRIVATE)
+
+    var sleepProfiles: List<SleepProfile>
+        get() = runCatching {
+            val json = JSONArray(prefs.getString("sleepProfiles", "[]"))
+            (0 until json.length()).mapNotNull { json.optJSONObject(it) }.map { o ->
+                val temperatures = o.getJSONArray("temperatures")
+                SleepProfile(
+                    o.getString("id"), o.getString("name"),
+                    (0 until temperatures.length()).map { temperatures.getDouble(it) }, o.optBoolean("turnsOffAtEnd", true),
+                )
+            }
+        }.getOrElse { emptyList() }
+        set(value) = prefs.edit().putString("sleepProfiles", JSONArray(value.map {
+            JSONObject().put("id", it.id).put("name", it.name).put("temperatures", JSONArray(it.temperatures))
+                .put("turnsOffAtEnd", it.turnsOffAtEnd)
+        }).toString()).apply()
 }
