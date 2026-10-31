@@ -17,6 +17,8 @@ object MitraColors {
     val surface = Color(0xFF12151F)
     val glass = Color(0x1FFFFFFF)
     val glassBorder = Color(0x14FFFFFF)
+    /** The controls' panel: dark frosted glass that lets the air show through. */
+    val panel = Color(0xB80E111C)
     val secondaryText = Color(0x99FFFFFF)
 
     /** The AC's display: the digits on the unit. */

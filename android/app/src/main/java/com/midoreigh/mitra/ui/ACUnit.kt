@@ -252,6 +252,10 @@ fun rememberFrameClock(running: Boolean): State<Double> {
 /** The unit's width as a share of the scene's; the air fans out across the rest. */
 private const val UNIT_WIDTH = 0.64f
 
+/** How tall the unit is drawn in a scene of this size, so layouts can sit things under it. */
+fun unitHeight(sceneWidth: Dp, sceneHeight: Dp): Dp =
+    min((sceneHeight * 0.34f).value, (sceneWidth * UNIT_WIDTH / 3.9f).value).dp
+
 /**
  * The indoor unit seen from the front, with air streaming out that follows both louvers:
  * the vertical louver sets how far down the air goes, the horizontal one steers it left or
@@ -270,7 +274,7 @@ fun ACUnitScene(
 
     BoxWithConstraints(modifier) {
         val unitWidth = maxWidth * UNIT_WIDTH
-        val unitHeight = min((maxHeight * 0.34f).value, (unitWidth / 3.9f).value).dp
+        val unitHeight = unitHeight(maxWidth, maxHeight)
         val unitLeft = (maxWidth - unitWidth) / 2
 
         // The air, from under the unit to the bottom of the scene, drawn first so the flap

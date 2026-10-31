@@ -95,72 +95,69 @@ import kotlinx.coroutines.launch
 @Composable
 fun ControlScreen(ui: UiState, store: ACStore, openSettings: () -> Unit) {
     val state = ui.state
-    val controlsAlpha by animateFloatAsState(if (state.isOn) 1f else 0.55f, tween(300), label = "controls")
-    BoxWithConstraints(Modifier.fillMaxSize().background(MitraColors.night)) {
-        // On a typical phone everything fits on one screen: the hero takes most of the spare
-        // height and some is left under the controls, so they sit within thumb reach without
-        // hugging the bottom edge. A short screen scrolls instead.
-        val fits = maxHeight >= 760.dp
-        val top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
-        Column(
-            Modifier
-                .fillMaxSize()
-                .then(if (fits) Modifier else Modifier.verticalScroll(rememberScrollState()))
-                .padding(bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()),
-        ) {
-            Hero(ui, store, openSettings, if (fits) Modifier.weight(1f) else Modifier.height(top + 460.dp))
-            Column(
-                Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 12.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-            ) {
-                AnimatedVisibility(!state.isOnline, enter = expandVertically() + fadeIn(), exit = shrinkVertically() + fadeOut()) {
-                    OfflineBanner(ui.selected?.name ?: "The AC")
-                }
-                Column(Modifier.alpha(controlsAlpha), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                    FanBar(state, ui.canControl) { store.send(ACCommand.Fan(it)) }
-                    ModeBar(state, ui, ui.canControl) { store.send(ACCommand.Mode(it)) }
-                    Features(state, ui, store)
-                }
-            }
-            if (fits) Spacer(Modifier.weight(0.12f))
-        }
-    }
-}
-
-// Hero
-
-/** The AC edge to edge with its air, the set temperature over it and the louvers along the bottom. */
-@Composable
-private fun Hero(ui: UiState, store: ACStore, openSettings: () -> Unit, modifier: Modifier) {
-    val state = ui.state
     val top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
-    val shape = RoundedCornerShape(bottomStart = 28.dp, bottomEnd = 28.dp)
+    val bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
     val connection = connection(ui)
-    Box(
-        Modifier
-            .fillMaxWidth()
-            .then(modifier)
-            .clip(shape)
-            .border(1.dp, MitraColors.glassBorder, shape),
-    ) {
+    BoxWithConstraints(Modifier.fillMaxSize().background(MitraColors.night)) {
+        // The AC and its air fill the whole screen, the air flowing on behind the controls' glass.
+        val sceneTop = top + 70.dp
         GraphiteBackdrop(state.isOn, Modifier.fillMaxSize())
         ACUnitScene(
             state,
             Modifier
                 .fillMaxSize()
-                .padding(top = top + 70.dp)
+                .padding(top = sceneTop)
                 .semantics { contentDescription = "${ui.selected?.name ?: "AC"}: ${state.summary}. ${connection.second}" },
             statusLight = connection.first,
             onStatusLightTap = if (ui.isPreviewing) store::togglePreviewOnline else null,
         )
-        Column(Modifier.fillMaxSize().padding(start = 16.dp, end = 16.dp, top = top + 8.dp, bottom = 16.dp)) {
-            Header(ui, store, openSettings)
-            Spacer(Modifier.weight(1f))
-            Temperature(state, ui.canControl) { delta ->
-                store.send(ACCommand.Temperature((state.setpoint + delta).coerceIn(ACState.MIN_TEMPERATURE, ACState.MAX_TEMPERATURE)))
+        val unitBottom = sceneTop + unitHeight(maxWidth, maxHeight - sceneTop)
+        // Tall enough for the temperature to float in the air between the AC and the panel;
+        // a shorter screen scrolls instead.
+        val fits = maxHeight >= 720.dp
+        Column(
+            Modifier
+                .fillMaxSize()
+                .then(if (fits) Modifier else Modifier.verticalScroll(rememberScrollState()))
+                .padding(start = 12.dp, end = 12.dp, top = top + 8.dp, bottom = bottom + 12.dp),
+        ) {
+            Box(Modifier.padding(horizontal = 4.dp)) { Header(ui, store, openSettings) }
+            Spacer(Modifier.height(unitBottom - top - 56.dp + 16.dp))
+            if (fits) Spacer(Modifier.weight(1f))
+            Box(Modifier.padding(horizontal = 4.dp)) {
+                Temperature(state, ui.canControl) { delta ->
+                    store.send(ACCommand.Temperature((state.setpoint + delta).coerceIn(ACState.MIN_TEMPERATURE, ACState.MAX_TEMPERATURE)))
+                }
             }
-            Spacer(Modifier.height(16.dp))
-            Louvers(state, ui.canControl, store)
+            if (fits) Spacer(Modifier.weight(1f)) else Spacer(Modifier.height(24.dp))
+            ControlPanel(ui, store)
+        }
+    }
+}
+
+/** Every control on one frosted glass panel at the bottom, within thumb reach. */
+@Composable
+private fun ControlPanel(ui: UiState, store: ACStore) {
+    val state = ui.state
+    val controlsAlpha by animateFloatAsState(if (state.isOn) 1f else 0.55f, tween(300), label = "controls")
+    val shape = RoundedCornerShape(28.dp)
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .clip(shape)
+            .background(MitraColors.panel, shape)
+            .border(1.dp, MitraColors.glassBorder, shape)
+            .padding(12.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp),
+    ) {
+        AnimatedVisibility(!state.isOnline, enter = expandVertically() + fadeIn(), exit = shrinkVertically() + fadeOut()) {
+            OfflineBanner(ui.selected?.name ?: "The AC")
+        }
+        Louvers(state, ui.canControl, store)
+        Column(Modifier.alpha(controlsAlpha), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+            FanBar(state, ui.canControl) { store.send(ACCommand.Fan(it)) }
+            ModeBar(state, ui, ui.canControl) { store.send(ACCommand.Mode(it)) }
+            Features(state, ui, store)
         }
     }
 }
