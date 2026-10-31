@@ -4,18 +4,27 @@ What's new in each release of Mitra for MirAIe for Mac. Versions follow
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html). The Android app is versioned
 separately; see [its changelog](android/CHANGELOG.md).
 
-## [Unreleased]
+## [1.5.0] - 2026-10-31
+
+Timers and sleep profiles, a feature you won't find in other apps for these ACs.
 
 ### What's new
 
-- **Timers.** Click the timer button to have your AC turn off or on at a set time, or pick
+- **Timers.** Click **Timer** to have your AC turn off or on at a set time, or pick
   30 minutes to 4 hours from now. Your AC keeps the timers itself, so they work even while your
   Mac is asleep.
 - **Sleep profiles.** Choose a temperature for each hour of the night in Settings, and whether
-  the AC turns off at the end, then start the profile from the bed button. Gentle, the AC's own
+  the AC turns off at the end, then start the profile with **Sleep**. Gentle, the AC's own
   profile, is always there: your temperature for three hours, then a degree warmer, then two.
 - **What's coming, at a glance.** While a timer is set or a profile runs, the panel shows it
   under the AC, such as "Off at 9:20 PM" or "Night · hour 2 of 4".
+- **Settings in tabs.** General, Air Conditioners, Sleep, and Siri & Widgets each have their own
+  tab, so there's no long page to scroll.
+
+### Fixes
+
+- **Offline during a power cut.** If your AC lost power, Mitra could still show it as online. It
+  now shows it offline until the AC is back.
 
 ## [1.4.0] - 2026-10-31
 
@@ -127,6 +136,7 @@ for the Mac.
 - Desktop and Notification Center widgets and the Control Center toggle are available when you
   build Mitra from source with your own Apple developer account.
 
+[1.5.0]: https://github.com/midoreigh/mitra-for-miraie/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/midoreigh/mitra-for-miraie/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/midoreigh/mitra-for-miraie/compare/v1.2.1...v1.3.0
 [1.2.1]: https://github.com/midoreigh/mitra-for-miraie/compare/v1.2.0...v1.2.1
