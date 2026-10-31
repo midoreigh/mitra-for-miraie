@@ -8,83 +8,110 @@ struct SettingsView: View {
     @State private var launchAtLogin = SMAppService.mainApp.status == .enabled
 
     var body: some View {
-        Form {
-            Section("Account") {
-                LabeledContent("MirAIe account", value: SecretStore.credentials?.username ?? "Not signed in")
-                LabeledContent("Air conditioners", value: store.devices.map(\.name).joined(separator: ", "))
-                if store.phase != .signedOut {
-                    Button("Sign Out", role: .destructive) { store.signOut() }
-                }
+        TabView {
+            page {
+                account
+                general
+                UpdatesSection(updates: UpdateChecker.shared)
             }
+            .tabItem { Label("General", systemImage: "gearshape") }
 
-            Section("General") {
-                Toggle("Launch at login", isOn: Binding(get: { launchAtLogin }, set: { setLaunchAtLogin($0) }))
-                Picker("Default AC for Siri and widgets", selection: Binding(
-                    get: { store.selected?.id ?? "" },
-                    set: { store.selectedId = $0 }
-                )) {
-                    ForEach(store.devices) { Text($0.name).tag($0.id) }
-                }
-                .disabled(store.devices.count < 2)
-            }
+            page { features }
+                .tabItem { Label("Air Conditioners", systemImage: "air.conditioner.horizontal") }
 
-            UpdatesSection(updates: UpdateChecker.shared)
+            page { SleepProfilesSection() }
+                .tabItem { Label("Sleep", systemImage: "bed.double") }
 
-            ForEach(store.devices) { device in
-                let capabilities = store.capabilities[device.id] ?? ACCapabilities()
-                Section {
-                    Toggle("Heating", isOn: Binding(get: { capabilities.heat }, set: { on in
-                        var updated = capabilities
-                        updated.heat = on
-                        store.setCapabilities(updated, for: device.id)
-                    }))
-                    Toggle("nanoe X air purifier", isOn: Binding(get: { capabilities.nanoe }, set: { on in
-                        var updated = capabilities
-                        updated.nanoe = on
-                        store.setCapabilities(updated, for: device.id)
-                    }))
-                    Toggle("Converti7 cooling levels", isOn: Binding(get: { capabilities.converti }, set: { on in
-                        var updated = capabilities
-                        updated.converti = on
-                        store.setCapabilities(updated, for: device.id)
-                    }))
-                } header: {
-                    Text("\(device.name) features")
-                } footer: {
-                    Text("MirAIe doesn't say which features an AC has. Mitra for MirAIe turns Heating and nanoe X on when the AC reports using them; switch features on or off to match your model.")
-                }
-            }
+            page { siriAndWidgets }
+                .tabItem { Label("Siri & Widgets", systemImage: "waveform") }
+        }
+        .frame(width: 460)
+    }
 
-            Section {
-                VStack(alignment: .leading, spacing: 6) {
-                    ForEach(Self.siriExamples, id: \.self) { phrase in
-                        Label("“\(phrase)”", systemImage: "waveform")
-                    }
-                }
-                .foregroundStyle(.secondary)
-                Button("Open Shortcuts") {
-                    NSWorkspace.shared.open(URL(string: "shortcuts://")!)
-                }
-            } header: {
-                Text("Siri & Shortcuts")
-            } footer: {
-                Text("Mitra for MirAIe's actions also appear in the Shortcuts app, Spotlight and Control Center.")
-            }
+    /// One tab: a grouped form, as tall as its content.
+    private func page(@ViewBuilder _ content: () -> some View) -> some View {
+        Form(content: content)
+            .formStyle(.grouped)
+            // The window grows to fit the tab, so there's usually nothing to scroll: no scroll bar
+            // (macOS otherwise draws one when "Show scroll bars" is Always) and no bounce. It stops
+            // short of the screen's edges, and a short screen scrolls the rest.
+            .scrollIndicators(.never)
+            .scrollBounceBehavior(.basedOnSize)
+            .frame(maxHeight: Self.maxHeight)
+            .fixedSize(horizontal: false, vertical: true)
+    }
 
-            Section("Widgets") {
-                Text("Right-click the desktop and choose Edit Widgets, or open Notification Centre and click Edit Widgets, then search for Mitra for MirAIe.")
-                    .foregroundStyle(.secondary)
+    @ViewBuilder private var account: some View {
+        Section("Account") {
+            LabeledContent("MirAIe account", value: SecretStore.credentials?.username ?? "Not signed in")
+            LabeledContent("Air conditioners", value: store.devices.map(\.name).joined(separator: ", "))
+            if store.phase != .signedOut {
+                Button("Sign Out", role: .destructive) { store.signOut() }
             }
         }
-        .formStyle(.grouped)
-        // The window grows to fit the form, so there's usually nothing to scroll: no scroll bar
-        // (macOS otherwise draws one when "Show scroll bars" is Always) and no bounce. It stops
-        // short of the screen's edges, and a short screen scrolls the rest.
-        .scrollIndicators(.never)
-        .scrollBounceBehavior(.basedOnSize)
-        .frame(width: 460)
-        .frame(maxHeight: Self.maxHeight)
-        .fixedSize(horizontal: false, vertical: true)
+    }
+
+    @ViewBuilder private var general: some View {
+        Section("General") {
+            Toggle("Launch at login", isOn: Binding(get: { launchAtLogin }, set: { setLaunchAtLogin($0) }))
+            Picker("Default AC for Siri and widgets", selection: Binding(
+                get: { store.selected?.id ?? "" },
+                set: { store.selectedId = $0 }
+            )) {
+                ForEach(store.devices) { Text($0.name).tag($0.id) }
+            }
+            .disabled(store.devices.count < 2)
+        }
+    }
+
+    @ViewBuilder private var features: some View {
+        ForEach(store.devices) { device in
+            let capabilities = store.capabilities[device.id] ?? ACCapabilities()
+            Section {
+                Toggle("Heating", isOn: Binding(get: { capabilities.heat }, set: { on in
+                    var updated = capabilities
+                    updated.heat = on
+                    store.setCapabilities(updated, for: device.id)
+                }))
+                Toggle("nanoe X air purifier", isOn: Binding(get: { capabilities.nanoe }, set: { on in
+                    var updated = capabilities
+                    updated.nanoe = on
+                    store.setCapabilities(updated, for: device.id)
+                }))
+                Toggle("Converti7 cooling levels", isOn: Binding(get: { capabilities.converti }, set: { on in
+                    var updated = capabilities
+                    updated.converti = on
+                    store.setCapabilities(updated, for: device.id)
+                }))
+            } header: {
+                Text("\(device.name) features")
+            } footer: {
+                Text("MirAIe doesn't say which features an AC has. Mitra for MirAIe turns Heating and nanoe X on when the AC reports using them; switch features on or off to match your model.")
+            }
+        }
+    }
+
+    @ViewBuilder private var siriAndWidgets: some View {
+        Section {
+            VStack(alignment: .leading, spacing: 6) {
+                ForEach(Self.siriExamples, id: \.self) { phrase in
+                    Label("“\(phrase)”", systemImage: "waveform")
+                }
+            }
+            .foregroundStyle(.secondary)
+            Button("Open Shortcuts") {
+                NSWorkspace.shared.open(URL(string: "shortcuts://")!)
+            }
+        } header: {
+            Text("Siri & Shortcuts")
+        } footer: {
+            Text("Mitra for MirAIe's actions also appear in the Shortcuts app, Spotlight and Control Center.")
+        }
+
+        Section("Widgets") {
+            Text("Right-click the desktop and choose Edit Widgets, or open Notification Centre and click Edit Widgets, then search for Mitra for MirAIe.")
+                .foregroundStyle(.secondary)
+        }
     }
 
     /// The visible screen's height, less room for the title bar and a margin above and below.

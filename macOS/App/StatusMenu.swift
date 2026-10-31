@@ -64,7 +64,7 @@ final class StatusMenu: NSObject {
 
     @objc private func refresh() { Task { await store?.start() } }
 
-    @objc private func showSettings() {
+    @objc func showSettings() {
         NSApp.activate()
         openSettings?()
     }

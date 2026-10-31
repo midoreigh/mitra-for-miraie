@@ -15,6 +15,7 @@ struct ControlView: View {
                     fanSpeeds
                     modes
                     features
+                    schedules
                 }
                 .disabled(!store.canControl)
                 .opacity(controlOpacity(off: 0.55))
@@ -55,6 +56,10 @@ struct ControlView: View {
             if !state.isOnline {
                 offlineNotice
                     .padding(.top, 152)
+                    .transition(.opacity)
+            } else if !scheduleLabels.isEmpty {
+                schedule
+                    .padding(.top, 156)
                     .transition(.opacity)
             }
 
@@ -188,6 +193,45 @@ struct ControlView: View {
         .opacity(controlOpacity(off: 0.6))
     }
 
+    /// What the AC will do by itself: its timers and the sleep profile it's running.
+    private var scheduleLabels: [(symbol: String, text: String)] {
+        var labels: [(String, String)] = []
+        if state.sleepProfile != nil {
+            // A profile started in the MirAIe app: its name and length aren't sent to the AC, so
+            // which hour it's on means little.
+            if let known = store.runningSleepProfile {
+                let hour = state.sleepHour.map { " · hour \(min($0 + 1, known.temperatures.count)) of \(known.temperatures.count)" }
+                labels.append(("bed.double", known.name + (hour ?? "")))
+            } else {
+                labels.append(("bed.double", "Sleep profile on"))
+            }
+        }
+        if let off = state.offTimer, off > Date() { labels.append(("timer", "Off at \(Self.time(off))")) }
+        if let on = state.onTimer, on > Date() { labels.append(("timer", "On at \(Self.time(on))")) }
+        return labels
+    }
+
+    private var schedule: some View {
+        HStack(spacing: 6) {
+            ForEach(scheduleLabels, id: \.text) { label in
+                Label(label.text, systemImage: label.symbol)
+                    .font(.caption.weight(.medium))
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 5)
+                    .glassEffect(.regular, in: .capsule)
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .animation(.snappy, value: scheduleLabels.map(\.text))
+    }
+
+    /// "9:20 PM", or "Tue 7:00 AM" when it's not in the next day.
+    private static func time(_ date: Date) -> String {
+        date.timeIntervalSinceNow < 20 * 3600
+            ? date.formatted(date: .omitted, time: .shortened)
+            : date.formatted(.dateTime.weekday(.abbreviated).hour().minute())
+    }
+
     // MARK: - Controls
 
     private var offlineNotice: some View {
@@ -253,6 +297,46 @@ struct ControlView: View {
         }
     }
 
+    /// Timer and Sleep get a row of their own, named and showing what's set: few apps for these
+    /// ACs offer them.
+    private var schedules: some View {
+        HStack(spacing: 8) {
+            ScheduleButton(title: "Timer", detail: timerDetail, hint: timerHint, hintAnchor: .leading, symbol: "timer",
+                           isOn: state.offTimer != nil || state.onTimer != nil, tint: FeatureColor.timer) {
+                TimerPopover(state: state).environment(store)
+            }
+            ScheduleButton(title: "Sleep", detail: sleepDetail, hint: sleepHint, hintAnchor: .trailing, symbol: "bed.double",
+                           isOn: state.sleepProfile != nil, tint: FeatureColor.sleep) {
+                SleepPopover().environment(store)
+            }
+        }
+    }
+
+    /// The sooner timer; both are listed under the AC.
+    private var timerDetail: String {
+        let timers = [state.offTimer.map { ("Off", $0) }, state.onTimer.map { ("On", $0) }].compactMap(\.self)
+        guard let next = timers.min(by: { $0.1 < $1.1 }) else { return "Turn on or off later" }
+        return "\(next.0) at \(Self.time(next.1))"
+    }
+
+    /// Every timer that's set, or what the button is for.
+    private var timerHint: String {
+        let timers = [state.offTimer.map { "Off at \(Self.time($0))" }, state.onTimer.map { "On at \(Self.time($0))" }]
+            .compactMap(\.self)
+        return timers.isEmpty ? "Turn the AC off or on at a set time" : timers.joined(separator: " · ")
+    }
+
+    private var sleepHint: String {
+        guard state.sleepProfile != nil else { return "A set temperature for each hour of the night" }
+        guard let profile = store.runningSleepProfile else { return "A profile started in the MirAIe app is on" }
+        return "\(profile.name): \(SleepProfile.progress(profile, hour: state.sleepHour).lowercased())"
+    }
+
+    private var sleepDetail: String {
+        guard state.sleepProfile != nil else { return "Hour by hour" }
+        return store.runningSleepProfile?.name ?? "Profile on"
+    }
+
     private func step(_ delta: Double) {
         store.send(.temperature(min(ACState.temperatureRange.upperBound,
                                     max(ACState.temperatureRange.lowerBound, state.setpoint + delta))))
@@ -298,7 +382,62 @@ private enum FeatureColor {
     static let nanoe = Color(red: 0.42, green: 0.32, blue: 0.82)
     static let bulb = Color(red: 1.0, green: 0.74, blue: 0.36)
     static let bulbIcon = Color(red: 0.3, green: 0.17, blue: 0.0)
+    static let timer = Color(red: 0.16, green: 0.4, blue: 0.78)
+    static let sleep = Color(red: 0.3, green: 0.26, blue: 0.62)
 }
+
+/// A wide button with its name and what's set, opening a popover. While something is set, its
+/// icon sits in a disc of the feature's colour and the button takes a tint of it.
+private struct ScheduleButton<Content: View>: View {
+    let title: String
+    let detail: String
+    let hint: String
+    /// Which edge the hint lines up with, so it stays inside the panel.
+    let hintAnchor: HorizontalAlignment
+    let symbol: String
+    let isOn: Bool
+    let tint: Color
+    @ViewBuilder let content: () -> Content
+    @State private var isPresented = false
+    @Environment(\.isEnabled) private var isEnabled
+
+    var body: some View {
+        Button { isPresented.toggle() } label: {
+            HStack(spacing: 10) {
+                Image(systemName: symbol)
+                    .symbolVariant(isOn ? .fill : .none)
+                    .font(.callout.weight(.semibold))
+                    .foregroundStyle(isOn ? .white : .primary)
+                    .frame(width: 32, height: 32)
+                    .background(Circle().fill(isOn ? AnyShapeStyle(tint.gradient) : AnyShapeStyle(.quaternary)))
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(title).font(.callout.weight(.semibold))
+                    Text(detail)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                        .truncationMode(.tail)
+                        .contentTransition(.opacity)
+                }
+                Spacer(minLength: 0)
+            }
+            .padding(.leading, 6)
+            .padding(.trailing, 12)
+            .padding(.vertical, 6)
+            .frame(maxWidth: .infinity)
+            .background(Capsule().fill(tint.opacity(isOn && isEnabled ? 0.18 : 0)))
+            .contentShape(.capsule)
+        }
+        .buttonStyle(.plain)
+        .glassEffect(.regular.interactive(), in: .capsule)
+        .animation(.snappy, value: isOn)
+        .animation(.snappy, value: detail)
+        .hoverHint(hint, anchor: hintAnchor)
+        .popover(isPresented: $isPresented, arrowEdge: .bottom, content: content)
+    }
+}
+
+
 
 /// One feature button: an icon, filled in the feature's colour while on.
 private struct FeatureToggle: View {

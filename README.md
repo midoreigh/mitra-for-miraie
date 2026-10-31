@@ -69,6 +69,7 @@ Every action also works in Shortcuts, so your AC can switch on before you get ho
 | **Fan speed** | Auto, Quiet, Low, Medium and High, named as in the MirAIe app, each one click or tap away. |
 | **Airflow** | Up/down and left/right: swing, or any of five positions on each, each one click or tap away. |
 | **Features** | Eco, Powerful, Converti7 cooling levels, nanoe X on units that have it, and the display light. |
+| **Timers and sleep** (Mac) | Turn off or on at a set time, and sleep profiles with a temperature for each hour of the night. |
 | **Every AC** | Switch between all the ACs on your MirAIe account. |
 | **Siri and Shortcuts** (Mac) | Power, temperature, mode, fan speed, airflow and status. |
 | **Widget, tile and shortcuts** (Android) | A home-screen widget, a Quick Settings tile for power, and AC on, AC off, Cooler and Warmer when you long-press the app icon. |

@@ -57,6 +57,43 @@ import Testing
         #expect(!ACCommand.isConfirmed([.temperature(24)], by: ["actmp": "25"]))
         #expect(!ACCommand.isConfirmed([.mode(.cool)], by: ["ps": "on"]))
     }
+
+    @Test func sendsTimersAsMinutesFromNow() throws {
+        let off = Date().addingTimeInterval(4 * 3600)
+        let data = ACCommand.payload([.timers(off: off, on: nil)])
+        let json = try #require(try JSONSerialization.jsonObject(with: data) as? [String: Any])
+        let timers = try #require(json["actm"] as? [Int])
+        #expect(abs(timers[0] - 4 * 3600) <= 30)
+        #expect(timers[1] == -1)
+        #expect(json["ki"] as? Int == 14)
+    }
+
+    @Test func readsTimersAsTimes() {
+        let state = ACState(fields: ["actm": [1793461838, -1]])
+        #expect(state.offTimer == Date(timeIntervalSince1970: 1793461838))
+        #expect(state.onTimer == nil)
+        #expect(ACCommand.isConfirmed([.timers(off: Date(timeIntervalSince1970: 1793461800), on: nil)],
+                                      by: ["actm": [1793461838, -1]]))
+        #expect(!ACCommand.isConfirmed([.timers(off: nil, on: nil)], by: ["actm": [1793461838, -1]]))
+    }
+
+    @Test func sendsSleepProfiles() throws {
+        let profile = SleepProfile(id: "a201719138", name: "Night", temperatures: [28, 27, 24], turnsOffAtEnd: true)
+        let json = try #require(try JSONSerialization.jsonObject(with: ACCommand.payload([.startSleep(profile)])) as? [String: Any])
+        #expect(json["acsp"] as? String == "on")
+        #expect(json["pid"] as? String == "a201719138")
+        #expect(json["temps"] as? [String] == ["28.0", "27.0", "24.0", "00.0"])
+        #expect(json["ki"] as? Int == 12)
+
+        let running = ACState(fields: ["acsp": "a201719138", "sleep_indx": "1"])
+        #expect(running.sleepProfile == "a201719138" && running.sleepHour == 1)
+        #expect(ACCommand.isConfirmed([.startSleep(profile)], by: ["acsp": "a201719138"]))
+        #expect(ACState(fields: ["acsp": "none"]).sleepProfile == nil)
+    }
+
+    @Test func gentleFollowsTheSetTemperature() {
+        #expect(SleepProfile.gentle.schedule(from: 25) == [25, 25, 25, 26, 26, 26, 27, 27])
+    }
 }
 
 @Suite struct LoginIdentifierTests {

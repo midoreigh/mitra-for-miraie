@@ -39,6 +39,7 @@ public struct SharedStore: Sendable {
         static let states = "states"
         static let selectedDevice = "selectedDevice"
         static let capabilities = "capabilities"
+        static let sleepProfiles = "sleepProfiles"
     }
 
     private var defaults: UserDefaults { SharedContainer.defaults }
@@ -91,6 +92,12 @@ public struct SharedStore: Sendable {
         let learned = current.learning(from: state)
         if learned != current { setCapabilities(learned, for: deviceId) }
         return learned
+    }
+
+    /// The user's own sleep profiles, for every AC. Kept on signing out.
+    public var sleepProfiles: [SleepProfile] {
+        get { decode([SleepProfile].self, Key.sleepProfiles) ?? [] }
+        nonmutating set { encode(newValue, Key.sleepProfiles) }
     }
 
     public func clear() {
