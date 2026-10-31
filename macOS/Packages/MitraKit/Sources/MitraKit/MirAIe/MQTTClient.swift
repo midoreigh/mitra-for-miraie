@@ -8,7 +8,9 @@ public final class MQTTClient: @unchecked Sendable {
 
     public struct Handlers: Sendable {
         public var stateChanged: @Sendable (State) -> Void = { _ in }
-        public var message: @Sendable (_ topic: String, _ payload: Data) -> Void = { _, _ in }
+        /// `retained` is true when the broker replays the last message it kept for the topic on
+        /// subscribing, which can be from long ago.
+        public var message: @Sendable (_ topic: String, _ payload: Data, _ retained: Bool) -> Void = { _, _, _ in }
         /// The broker refused the credentials (CONNACK 4 or 5), usually an expired token.
         public var authRejected: @Sendable () -> Void = {}
 
@@ -125,8 +127,8 @@ public final class MQTTClient: @unchecked Sendable {
         case .connAck(let code):
             closeWithNotice()
             if code == 4 || code == 5 { handlers.authRejected() }
-        case .publish(let topic, let payload):
-            handlers.message(topic, payload)
+        case .publish(let topic, let payload, let retained):
+            handlers.message(topic, payload, retained)
         default:
             break
         }
@@ -179,8 +181,8 @@ extension MQTTClient {
                     break
                 }
             }
-            handlers.message = { incoming, data in
-                if incoming == statusTopic, published.isSet, accepts(data) { gate.resume(returning: data) }
+            handlers.message = { incoming, data, retained in
+                if incoming == statusTopic, !retained, published.isSet, accepts(data) { gate.resume(returning: data) }
             }
             handlers.authRejected = { gate.resume(throwing: MitraError.sessionExpired) }
             client.setHandlers(handlers)

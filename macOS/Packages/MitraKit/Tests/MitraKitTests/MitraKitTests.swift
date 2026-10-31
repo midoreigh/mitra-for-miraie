@@ -75,4 +75,13 @@ import Testing
         #expect(decoder.append(packet.prefix(3)).isEmpty)
         #expect(decoder.append(packet.dropFirst(3)) == [.publish(topic: "a/status", payload: Data("{}".utf8))])
     }
+
+    /// The broker replays the last status it kept when subscribing, even if the AC has since lost
+    /// power; the retain flag tells it apart from a fresh one.
+    @Test func decodesRetainFlag() {
+        var packet = MQTTPacket.publish(topic: "a/status", payload: Data("{}".utf8))
+        packet[packet.startIndex] |= 0x01
+        var decoder = MQTTPacket.Decoder()
+        #expect(decoder.append(packet) == [.publish(topic: "a/status", payload: Data("{}".utf8), retained: true)])
+    }
 }

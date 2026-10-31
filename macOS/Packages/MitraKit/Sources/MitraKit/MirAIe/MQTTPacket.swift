@@ -33,7 +33,9 @@ public enum MQTTPacket {
     /// A packet received from the broker.
     public enum Incoming: Equatable, Sendable {
         case connAck(returnCode: UInt8)
-        case publish(topic: String, payload: Data)
+        /// `retained`: the broker is replaying the last message it kept for the topic, which may
+        /// be old, rather than passing on a new one.
+        case publish(topic: String, payload: Data, retained: Bool = false)
         case subAck
         case pingResponse
         case other(type: UInt8)
@@ -86,7 +88,7 @@ public enum MQTTPacket {
                 let topic = String(decoding: bytes[2..<(2 + topicLength)], as: UTF8.self)
                 let hasPacketId = (header >> 1) & 0x03 > 0
                 let payloadStart = min(bytes.count, 2 + topicLength + (hasPacketId ? 2 : 0))
-                return .publish(topic: topic, payload: Data(bytes[payloadStart...]))
+                return .publish(topic: topic, payload: Data(bytes[payloadStart...]), retained: header & 0x01 != 0)
             case 9:
                 return .subAck
             case 13:
