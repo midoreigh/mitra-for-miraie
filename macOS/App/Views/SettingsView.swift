@@ -77,13 +77,19 @@ struct SettingsView: View {
             }
         }
         .formStyle(.grouped)
-        // The window grows to fit the form, so there's nothing to scroll: no scroll bar (macOS
-        // otherwise draws one when "Show scroll bars" is Always) and no bounce. A short screen
-        // can still scroll it.
+        // The window grows to fit the form, so there's usually nothing to scroll: no scroll bar
+        // (macOS otherwise draws one when "Show scroll bars" is Always) and no bounce. It stops
+        // short of the screen's edges, and a short screen scrolls the rest.
         .scrollIndicators(.never)
         .scrollBounceBehavior(.basedOnSize)
         .frame(width: 460)
+        .frame(maxHeight: Self.maxHeight)
         .fixedSize(horizontal: false, vertical: true)
+    }
+
+    /// The visible screen's height, less room for the title bar and a margin above and below.
+    private static var maxHeight: Double {
+        (NSScreen.main?.visibleFrame.height ?? 800) - 140
     }
 
     private static let siriExamples = [
