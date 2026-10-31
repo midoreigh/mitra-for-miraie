@@ -6,6 +6,8 @@ separately; see [its changelog](android/CHANGELOG.md).
 
 ## [Unreleased]
 
+## [1.5.1] - 2026-10-31
+
 ### What's new
 
 - **A new icon.** Your AC with its air in every mode's colour: Heat, Auto, Cool, Dry and Fan.
@@ -142,7 +144,8 @@ for the Mac.
 - Desktop and Notification Center widgets and the Control Center toggle are available when you
   build Mitra from source with your own Apple developer account.
 
-[Unreleased]: https://github.com/midoreigh/mitra-for-miraie/compare/v1.5.0...HEAD
+[Unreleased]: https://github.com/midoreigh/mitra-for-miraie/compare/v1.5.1...HEAD
+[1.5.1]: https://github.com/midoreigh/mitra-for-miraie/compare/v1.5.0...v1.5.1
 [1.5.0]: https://github.com/midoreigh/mitra-for-miraie/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/midoreigh/mitra-for-miraie/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/midoreigh/mitra-for-miraie/compare/v1.2.1...v1.3.0
