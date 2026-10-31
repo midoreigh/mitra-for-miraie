@@ -13,7 +13,7 @@
 <p align="center">
   <a href="https://github.com/midoreigh/mitra-for-miraie/releases/latest"><strong>Download for Mac</strong></a>
   ·
-  <a href="https://github.com/midoreigh/mitra-for-miraie/releases/tag/android-v1.0.1"><strong>Download for Android</strong></a>
+  <a href="https://github.com/midoreigh/mitra-for-miraie/releases/tag/android-v1.0.2"><strong>Download for Android</strong></a>
   ·
   <a href="#install">Install guide</a>
   ·
@@ -155,7 +155,7 @@ the new version, macOS asks you to confirm it, as described above:
 > expected and safe to allow; all of the source is here to check.
 
 1. On your phone, download **Mitra-for-MirAIe-&lt;version&gt;.apk** from the
-   [Android release](https://github.com/midoreigh/mitra-for-miraie/releases/tag/android-v1.0.1).
+   [Android release](https://github.com/midoreigh/mitra-for-miraie/releases/tag/android-v1.0.2).
 2. Open it. If Android asks, allow your browser (or Files app) to **install unknown apps**, then
    go back and tap **Install**. If Google Play Protect says it doesn't recognise the app, tap
    **More details ▸ Install anyway**.
@@ -209,7 +209,7 @@ Panasonic. MirAIe is a trademark of Panasonic.
 |---|---|---|
 | macOS 26 or later | Available ([download](https://github.com/midoreigh/mitra-for-miraie/releases/latest)) | [`macOS`](macOS) |
 | iOS | Planned | |
-| Android 8.0 or later | Available ([download](https://github.com/midoreigh/mitra-for-miraie/releases/tag/android-v1.0.1)) | [`android`](android) |
+| Android 8.0 or later | Available ([download](https://github.com/midoreigh/mitra-for-miraie/releases/tag/android-v1.0.2)) | [`android`](android) |
 
 ## Contributing
 
