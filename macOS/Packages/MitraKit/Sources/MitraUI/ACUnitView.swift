@@ -39,6 +39,8 @@ public struct ACUnitView: View {
     let statusText: String?
     let onStatusLightTap: (() -> Void)?
     @State private var motion = AirMotion()
+    /// Keeps the animation running while the AC finishes turning off.
+    @State private var settling = false
 
     /// - Parameters:
     ///   - statusLight: The colour of the light on the unit, e.g. to show whether it's online.
@@ -56,10 +58,15 @@ public struct ACUnitView: View {
 
     public var body: some View {
         if animated {
-            TimelineView(.animation(minimumInterval: 1 / 40, paused: !state.isOn)) { context in
+            TimelineView(.animation(minimumInterval: 1 / 40, paused: !state.isOn && !settling)) { context in
                 ACUnitScene(state: state, time: context.date.timeIntervalSinceReferenceDate,
                             statusLight: statusLight, statusText: statusText, onStatusLightTap: onStatusLightTap,
                             motion: motion)
+            }
+            .task(id: state.isOn) {
+                settling = true
+                try? await Task.sleep(for: .seconds(2.5))
+                if !Task.isCancelled { settling = false }
             }
         } else {
             // Widgets can't animate: show the airflow mid-stream.
@@ -68,10 +75,23 @@ public struct ACUnitView: View {
     }
 }
 
+/// How far the AC has got through turning on or off, eased: `fan` from still (0) to full speed
+/// (1), and `flap` from closed (0) to open (1).
+struct PowerLevels {
+    var fan: Double
+    var flap: Double
+
+    static func settled(_ isOn: Bool) -> PowerLevels {
+        PowerLevels(fan: isOn ? 1 : 0, flap: isOn ? 1 : 0)
+    }
+}
+
 /// Carries the animation from one frame to the next, so changes ease in rather than jump:
 /// the louvers travel to a new position at a brisk but visible pace (faster than they swing),
 /// and each bit of air keeps the fan speed and mode it left the unit with, so a change flows
-/// out from the outlet instead of the whole room changing at once.
+/// out from the outlet instead of the whole room changing at once. Turning on, the flap swings
+/// open and the fan spins up behind it; turning off, the fan winds down and the flap closes once
+/// the air has mostly stopped.
 @MainActor
 final class AirMotion {
     /// Degrees per second when moving to a new position; swinging tops out near 10.
@@ -87,6 +107,28 @@ final class AirMotion {
     private var release: [Double] = []
     private var gap: [Double] = []
     private var released = 0
+    /// Unlike `PowerLevels`, these change at a steady rate; they're eased when read.
+    private var fan: Double?
+    private var flap: Double?
+    private var powerTime: TimeInterval?
+
+    func power(for state: ACState, at time: TimeInterval) -> PowerLevels {
+        let elapsed = powerTime.map { min(0.1, max(0, time - $0)) } ?? 0
+        powerTime = time
+        var fan = fan ?? (state.isOn ? 1 : 0)
+        var flap = flap ?? (state.isOn ? 1 : 0)
+        if state.isOn {
+            flap = min(1, flap + elapsed / 0.9)
+            if flap > 0.3 { fan = min(1, fan + elapsed / 1.4) }
+        } else {
+            fan = max(0, fan - elapsed / 1.4)
+            if fan < 0.45 { flap = max(0, flap - elapsed / 1.0) }
+        }
+        self.fan = fan
+        self.flap = flap
+        func ease(_ x: Double) -> Double { x * x * (3 - 2 * x) }
+        return PowerLevels(fan: ease(fan), flap: ease(flap))
+    }
 
     func angles(for state: ACState, at time: TimeInterval) -> LouverAngles {
         let target = LouverAngles(state: state, time: time)
@@ -108,9 +150,10 @@ final class AirMotion {
     /// Moves every bit of air along at its own speed, and releases new air from the outlet at
     /// the current fan speed, carrying the current mode. Air already in the room carries on as it
     /// left until it fades, so a change starts at the outlet straight away and flows outward.
-    func air(for state: ACState, at time: TimeInterval) -> [AirParticle] {
+    /// While the fan spins up or winds down, less air comes out and all of it moves slower.
+    func air(for state: ACState, power: PowerLevels, at time: TimeInterval) -> [AirParticle] {
         if release.isEmpty {
-            air = AirflowCanvas.steadyAir(state: state, time: time)
+            air = state.isOn ? AirflowCanvas.steadyAir(state: state, time: time) : []
             release = (0..<AirflowCanvas.streams).map { AirflowCanvas.noise($0 * 13 + 5) }
             gap = (0..<AirflowCanvas.streams).map { 0.4 + 1.2 * AirflowCanvas.noise($0 * 29 + 3) }
         }
@@ -119,13 +162,16 @@ final class AirMotion {
         airTime = time
         let speed = AirflowCanvas.speed(fan: state.fan, time: time)
 
-        for index in air.indices { air[index].progress += air[index].speed * elapsed }
+        let drive = 0.35 + 0.65 * power.fan
+        for index in air.indices { air[index].progress += air[index].speed * drive * elapsed }
         air.removeAll { $0.progress >= 1 }
+        // Once the fan has stopped, the air left in the room has faded out: start afresh next time.
+        if power.fan == 0 { air.removeAll() }
 
         // At a steady speed each stream holds `particlesPerStream` bits of air, as before.
         let perStream = Double(AirflowCanvas.particlesPerStream)
         for stream in release.indices {
-            release[stream] += speed * elapsed * perStream
+            release[stream] += speed * elapsed * perStream * power.fan * power.flap
             while release[stream] >= gap[stream] {
                 release[stream] -= gap[stream]
                 released += 1
@@ -184,18 +230,17 @@ public struct ACUnitScene: View {
 
     public var body: some View {
         let angles = motion?.angles(for: state, at: time) ?? LouverAngles(state: state, time: time)
-        let air = motion?.air(for: state, at: time) ?? AirflowCanvas.steadyAir(state: state, time: time)
+        let power = motion?.power(for: state, at: time) ?? .settled(state.isOn)
+        let air = motion?.air(for: state, power: power, at: time) ?? AirflowCanvas.steadyAir(state: state, time: time)
         GeometryReader { geo in
             let unitHeight = min(geo.size.height * 0.34, geo.size.width * Self.unitWidth / 3.9)
             VStack(spacing: 0) {
-                UnitBody(state: state, angles: angles, statusLight: statusLight, statusText: statusText,
-                         onStatusLightTap: onStatusLightTap)
+                UnitBody(state: state, angles: angles, flap: power.flap, statusLight: statusLight,
+                         statusText: statusText, onStatusLightTap: onStatusLightTap)
                     .frame(width: geo.size.width * Self.unitWidth, height: unitHeight)
                     .zIndex(1) // the open flap hangs over the start of the air
-                AirflowCanvas(state: state, angles: angles, time: time, air: air)
+                AirflowCanvas(state: state, angles: angles, time: time, air: air, level: power.fan)
                     .frame(width: geo.size.width)
-                    .opacity(state.isOn ? 1 : 0)
-                    .animation(.easeInOut(duration: 0.6), value: state.isOn)
             }
             .frame(maxWidth: .infinity)
         }
@@ -206,6 +251,8 @@ public struct ACUnitScene: View {
 struct UnitBody: View {
     let state: ACState
     let angles: LouverAngles
+    /// How far open the flap is, 0 to 1.
+    let flap: Double
     let statusLight: Color?
     let statusText: String?
     let onStatusLightTap: (() -> Void)?
@@ -214,7 +261,7 @@ struct UnitBody: View {
         GeometryReader { geo in
             let size = geo.size
             ZStack(alignment: .top) {
-                UnitShell(isOn: state.isOn, angles: angles)
+                UnitShell(openness: flap, angles: angles)
                     .shadow(color: .black.opacity(0.35), radius: size.height * 0.18, y: size.height * 0.1)
 
                 UnitDisplay(state: state, hint: displayHint)
@@ -253,8 +300,10 @@ extension UnitBody {
 /// casing, flush and closed while the AC is off. Running, it swings away from the casing to
 /// open the outlet behind it: level, it shows its whole face and hangs a little below the
 /// unit; pointing down, it's seen almost edge-on, a thin blade with a wide gap above it.
+/// Turning on or off, it swings smoothly between closed and open.
 struct UnitShell: View {
-    let isOn: Bool
+    /// 0 closed, 1 open.
+    let openness: Double
     let angles: LouverAngles
 
     var body: some View {
@@ -268,8 +317,8 @@ struct UnitShell: View {
             // 1 when the flap is level (seen from below, its whole face shows), 0 when it points
             // straight down (seen almost edge-on, with the outlet wide open above it).
             let level = 1 - min(1, max(0, (angles.vertical - 12) / 60))
-            let gap = isOn ? h * (0.15 - 0.07 * level) : 0
-            let face = isOn ? strip * (0.4 + 0.75 * level) : strip
+            let gap = openness * h * (0.15 - 0.07 * level)
+            let face = strip + openness * (strip * (0.4 + 0.75 * level) - strip)
 
             let casing = Path(roundedRect: CGRect(x: 0, y: 0, width: w, height: h), cornerRadius: radius, style: .continuous)
             context.fill(casing, with: .linearGradient(Gradient(colors: [Color(white: 0.99), Color(white: 0.87)]),
@@ -280,7 +329,7 @@ struct UnitShell: View {
             var cavity = context
             cavity.clip(to: casing)
             cavity.fill(Path(outlet), with: .color(Color(white: 0.14)))
-            if isOn {
+            if openness > 0 {
                 let lean = tan(angles.horizontal * .pi / 180) * gap * 1.2
                 var vanes = Path()
                 for index in 1..<12 {
@@ -288,33 +337,33 @@ struct UnitShell: View {
                     vanes.move(to: CGPoint(x: x - lean / 2, y: seam + 1))
                     vanes.addLine(to: CGPoint(x: x + lean / 2, y: seam + gap - 1))
                 }
-                cavity.stroke(vanes, with: .color(Color(white: 0.55)), style: StrokeStyle(lineWidth: 1, lineCap: .round))
+                cavity.stroke(vanes, with: .color(Color(white: 0.55).opacity(openness)), style: StrokeStyle(lineWidth: 1, lineCap: .round))
             }
 
             // The flap. Closed, it's clipped to the casing's rounded bottom so it reads as part
-            // of it; open, it's its own rounded blade.
+            // of it; as it opens, the clip lets go and it becomes its own rounded blade.
             let top = seam + gap
             let blade = CGRect(x: cap + 0.5, y: top, width: w - 2 * cap - 1, height: face)
-            let bladePath = isOn
-                ? Path(roundedRect: blade, cornerRadius: min(face / 2, h * 0.08), style: .continuous)
-                : Path(blade)
+            let bladePath = Path(roundedRect: blade, cornerRadius: openness * min(face / 2, h * 0.08), style: .continuous)
             var flapContext = context
-            if !isOn { flapContext.clip(to: casing) }
+            flapContext.clip(to: Path(roundedRect: CGRect(x: 0, y: 0, width: w, height: h * (1 + 0.6 * openness)),
+                                      cornerRadius: radius, style: .continuous))
             flapContext.fill(bladePath, with: .linearGradient(Gradient(colors: [Color(white: 0.97), Color(white: 0.8)]),
                                                               startPoint: CGPoint(x: 0, y: top),
                                                               endPoint: CGPoint(x: 0, y: top + face)))
-            if isOn {
+            if openness > 0 {
                 // The leading edge catches the light.
                 var edge = Path()
                 edge.move(to: CGPoint(x: blade.minX + 3, y: top + 0.6))
                 edge.addLine(to: CGPoint(x: blade.maxX - 3, y: top + 0.6))
-                flapContext.stroke(edge, with: .color(.white), lineWidth: 1)
-            } else {
+                flapContext.stroke(edge, with: .color(.white.opacity(openness)), lineWidth: 1)
+            }
+            if openness < 1 {
                 // A fine seam between the panel and the closed flap.
                 var line = Path()
                 line.move(to: CGPoint(x: cap, y: seam))
                 line.addLine(to: CGPoint(x: w - cap, y: seam))
-                context.stroke(line, with: .color(Color(white: 0.72)), lineWidth: 0.75)
+                context.stroke(line, with: .color(Color(white: 0.72).opacity(1 - openness)), lineWidth: 0.75)
             }
 
             // Gloss across the top of the front panel, and a crisp outline.
@@ -327,7 +376,7 @@ struct UnitShell: View {
 }
 
 /// The set temperature glowing through the casing in the display colour, lit only while the AC runs with its
-/// display on.
+/// display on. It glows up out of a soft blur when it lights, and dims quickly when it goes out.
 struct UnitDisplay: View {
     let state: ACState
     let hint: String
@@ -341,8 +390,10 @@ struct UnitDisplay: View {
             .hoverHint(hint, edge: .leading)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .trailing)
             .opacity(lit ? 1 : 0)
+            .blur(radius: lit ? 0 : height * 0.18)
+            .scaleEffect(lit ? 1 : 0.94, anchor: .trailing)
         }
-        .animation(.easeInOut(duration: 0.3), value: lit)
+        .animation(lit ? .easeOut(duration: 0.7).delay(0.1) : .easeIn(duration: 0.35), value: lit)
     }
 
     private func readout(height: Double) -> some View {
@@ -384,6 +435,8 @@ struct AirflowCanvas: View {
     let time: TimeInterval
     /// Every bit of air on its way out of the unit.
     let air: [AirParticle]
+    /// How strongly the air shows, 0 to 1: it fades in and out as the fan spins up and down.
+    let level: Double
 
     static let streams = 13
     static let particlesPerStream = 7
@@ -410,7 +463,7 @@ struct AirflowCanvas: View {
                 var path = Path()
                 path.move(to: tail.position)
                 path.addLine(to: head.position)
-                let fade = sin(.pi * progress) * (0.55 + 0.35 * particle.seed) * Self.breath(fan: particle.fan, time: time)
+                let fade = sin(.pi * progress) * (0.55 + 0.35 * particle.seed) * Self.breath(fan: particle.fan, time: time) * level
                 context.stroke(path,
                                with: .linearGradient(Gradient(colors: [mode.tint.opacity(0), mode.glow.opacity(fade)]),
                                                      startPoint: tail.position, endPoint: head.position),
