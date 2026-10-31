@@ -8,6 +8,12 @@ Mac app, and released under tags named `android-v<version>`. Versions follow
 
 ### What's new
 
+- **Timers.** Tap Timer to have your AC turn off later, say in an hour, or turn on in the
+  morning. The AC keeps its timers itself, so they work even while your phone is off.
+- **Sleep profiles.** Set a temperature for each hour of the night in Settings, then start the
+  profile with the Sleep button and your AC follows it on its own. Gentle, built into the AC,
+  keeps your temperature for three hours, then warms it a degree, then another, and turns off.
+- What's set shows under the AC, such as "Off at 9:20 PM".
 - **Watch your AC switch on and off.** Turning on, the flap swings open, the fan spins up and
   the air gathers from the outlet while the display glows up. Turning off, the air slows and
   fades before the flap closes, just like the real unit.

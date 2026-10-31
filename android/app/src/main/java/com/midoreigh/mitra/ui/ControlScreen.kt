@@ -113,6 +113,8 @@ fun ControlScreen(ui: UiState, store: ACStore, openSettings: () -> Unit) {
             onStatusLightTap = if (ui.isPreviewing) store::togglePreviewOnline else null,
         )
         val unitBottom = sceneTop + unitHeight(maxWidth, maxHeight - sceneTop)
+        // Where the AC's air starts: what it will do by itself, unless it's offline.
+        ScheduleLabels(ui, Modifier.padding(top = unitBottom + 14.dp, start = 16.dp, end = 16.dp))
         // Tall enough for the temperature to float in the air between the AC and the panel;
         // a shorter screen scrolls instead.
         val fits = maxHeight >= 720.dp
@@ -131,7 +133,7 @@ fun ControlScreen(ui: UiState, store: ACStore, openSettings: () -> Unit) {
                 }
             }
             if (fits) Spacer(Modifier.weight(1f)) else Spacer(Modifier.height(24.dp))
-            ControlPanel(ui, store)
+            ControlPanel(ui, store, editProfiles = if (ui.isDemo) null else openSettings)
         }
     }
 }
@@ -145,7 +147,7 @@ private fun controlAlpha(state: ACState, off: Float): Float = when {
 
 /** Every control on one frosted glass panel at the bottom, within thumb reach. */
 @Composable
-private fun ControlPanel(ui: UiState, store: ACStore) {
+private fun ControlPanel(ui: UiState, store: ACStore, editProfiles: (() -> Unit)?) {
     val state = ui.state
     val controlsAlpha by animateFloatAsState(controlAlpha(state, off = 0.55f), tween(300), label = "controls")
     val shape = RoundedCornerShape(28.dp)
@@ -167,6 +169,8 @@ private fun ControlPanel(ui: UiState, store: ACStore) {
             ModeBar(state, ui, ui.canControl) { store.send(ACCommand.Mode(it)) }
             Features(state, ui, store)
         }
+        // Not dimmed while the AC is off: a timer can turn it on.
+        Box(Modifier.alpha(if (state.isOnline) 1f else 0.35f)) { ScheduleButtons(ui, store, editProfiles) }
     }
 }
 
