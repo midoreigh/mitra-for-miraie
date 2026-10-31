@@ -7,7 +7,8 @@
 <p align="center">
   <strong>Every setting on your Panasonic AC, one tap away.</strong><br>
   Pick any mode, fan speed or air direction straight away, no more cycling through them, and watch
-  the air flow while you do it. In your Mac's menu bar and on your Android phone.
+  the air flow while you do it. In your Mac's menu bar and on your Android phone.<br>
+  A free, open-source alternative to the MirAIe app.
 </p>
 
 <p align="center">
@@ -175,6 +176,16 @@ old one. You stay signed in.
 
 **Which air conditioners does it work with?**
 Panasonic ACs that you control with the MirAIe app.
+
+**Is Mitra an alternative to the MirAIe app?**
+Yes. You sign in with your MirAIe account and control the same ACs, but every mode, fan speed and
+air direction is one click or tap away instead of cycling through them, and Mitra adds timers and
+sleep profiles. It's free, open source and unofficial.
+
+**Is there a MirAIe app for Mac?**
+Mitra puts your MirAIe AC in your Mac's menu bar, with the set temperature beside the icon, every
+control one click away, and Siri and Shortcuts. It runs on macOS 26 or later, on Apple silicon or
+Intel.
 
 **Is my password safe?**
 You sign in with your MirAIe account. Your password is kept in your Mac's Keychain, or encrypted
