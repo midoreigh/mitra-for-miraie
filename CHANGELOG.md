@@ -4,6 +4,14 @@ What's new in each release of Mitra for MirAIe for Mac. Versions follow
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html). The Android app is versioned
 separately; see [its changelog](android/CHANGELOG.md).
 
+## [Unreleased]
+
+### What's new
+
+- **A livelier power switch.** Turn your AC on and the drawn unit comes to life the way the real
+  one does: the flap swings open, the fan spins up and the air gathers from the outlet while the
+  display glows on. Turn it off and the air slows and fades before the flap closes.
+
 ## [1.3.0] - 2026-10-31
 
 Clearer when your AC can't be reached, and smoother updates.

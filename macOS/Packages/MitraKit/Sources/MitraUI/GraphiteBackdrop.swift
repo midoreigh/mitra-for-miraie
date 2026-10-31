@@ -23,7 +23,7 @@ public struct GraphiteBackdrop: View {
                 mesh(time: 0)
             }
         }
-        .animation(.easeInOut(duration: 0.8), value: isOn)
+        .animation(.easeInOut(duration: 1.4), value: isOn)
     }
 
     private func mesh(time t: TimeInterval) -> some View {
