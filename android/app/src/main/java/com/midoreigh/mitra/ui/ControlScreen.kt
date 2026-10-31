@@ -97,9 +97,10 @@ fun ControlScreen(ui: UiState, store: ACStore, openSettings: () -> Unit) {
     val state = ui.state
     val controlsAlpha by animateFloatAsState(if (state.isOn) 1f else 0.55f, tween(300), label = "controls")
     BoxWithConstraints(Modifier.fillMaxSize().background(MitraColors.night)) {
-        // On a typical phone everything fits on one screen, the hero taking the spare height and
-        // the controls sitting low, within thumb reach. A short screen scrolls instead.
-        val fits = maxHeight >= 640.dp
+        // On a typical phone everything fits on one screen: the hero takes most of the spare
+        // height and some is left under the controls, so they sit within thumb reach without
+        // hugging the bottom edge. A short screen scrolls instead.
+        val fits = maxHeight >= 760.dp
         val top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
         Column(
             Modifier
@@ -121,6 +122,7 @@ fun ControlScreen(ui: UiState, store: ACStore, openSettings: () -> Unit) {
                     Features(state, ui, store)
                 }
             }
+            if (fits) Spacer(Modifier.weight(0.12f))
         }
     }
 }
