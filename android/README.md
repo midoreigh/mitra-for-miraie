@@ -8,6 +8,12 @@ cd android
 ./gradlew testDebugUnitTest   # unit tests
 ```
 
+Releases are versioned separately from the Mac app (see [CHANGELOG.md](CHANGELOG.md)): bump
+`versionName` and `versionCode` in `app/build.gradle.kts` in a `release/android-<version>` pull
+request, which CI builds, then push an `android-v<version>` tag. The release workflow builds the
+APK signed with the permanent release key from the repository secrets and publishes it, as a
+pre-release when the version has a suffix such as `-rc.1`.
+
 Builds with JDK 21 or later (Android Studio's bundled JDK works:
 `export JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home"`).
 

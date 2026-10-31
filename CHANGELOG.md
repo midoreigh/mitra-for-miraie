@@ -1,16 +1,8 @@
 # Changelog
 
-What's new in each release of Mitra for MirAIe. Versions follow
-[Semantic Versioning](https://semver.org/spec/v2.0.0.html).
-
-## [Unreleased]
-
-### What's new
-
-- **Mitra for Android.** The same living picture of your AC and one-tap controls for every
-  mode, fan speed and louver direction, now on Android phones, with a home-screen widget, a
-  Quick Settings tile for power and shortcuts when you long-press the app icon. Try it without
-  an account from the sign-in screen.
+What's new in each release of Mitra for MirAIe for Mac. Versions follow
+[Semantic Versioning](https://semver.org/spec/v2.0.0.html). The Android app is versioned
+separately; see [its changelog](android/CHANGELOG.md).
 
 ## [1.3.0] - 2026-10-31
 
@@ -107,7 +99,6 @@ for the Mac.
 - Desktop and Notification Center widgets and the Control Center toggle are available when you
   build Mitra from source with your own Apple developer account.
 
-[Unreleased]: https://github.com/midoreigh/mitra-for-miraie/compare/v1.3.0...HEAD
 [1.3.0]: https://github.com/midoreigh/mitra-for-miraie/compare/v1.2.1...v1.3.0
 [1.2.1]: https://github.com/midoreigh/mitra-for-miraie/compare/v1.2.0...v1.2.1
 [1.2.0]: https://github.com/midoreigh/mitra-for-miraie/compare/v1.1.0...v1.2.0

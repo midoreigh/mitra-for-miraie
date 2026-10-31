@@ -11,8 +11,23 @@ android {
         applicationId = "com.midoreigh.mitra"
         minSdk = 26
         targetSdk = 36
+        // The Android app is versioned on its own; releases are tagged android-v<versionName>.
         versionCode = 1
-        versionName = "1.0.0"
+        versionName = "1.0.0-rc.1"
+    }
+
+    // The permanent release key, from the environment (the release workflow sets these from the
+    // repository secrets). Without it, release builds fall back to the debug key so they still install.
+    val releaseKeystore = System.getenv("MITRA_ANDROID_KEYSTORE")
+    signingConfigs {
+        if (releaseKeystore != null) {
+            create("release") {
+                storeFile = file(releaseKeystore)
+                storePassword = System.getenv("MITRA_ANDROID_KEYSTORE_PASSWORD")
+                keyAlias = "mitra"
+                keyPassword = System.getenv("MITRA_ANDROID_KEYSTORE_PASSWORD")
+            }
+        }
     }
 
     buildTypes {
@@ -20,8 +35,7 @@ android {
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-            // Signed with the debug key until there's a release key, so the APK installs.
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.findByName("release") ?: signingConfigs.getByName("debug")
         }
     }
 

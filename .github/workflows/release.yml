@@ -1,8 +1,10 @@
 name: Release
 
+# The Mac and Android apps are released separately: a vN.N.N tag releases the Mac app and an
+# android-vN.N.N tag (e.g. android-v1.0.0-rc.1) the Android app.
 on:
   push:
-    tags: ['v*']
+    tags: ['v*', 'android-v*']
 
 permissions:
   contents: write
@@ -10,6 +12,7 @@ permissions:
 jobs:
   macos:
     name: Build and publish the macOS DMG
+    if: startsWith(github.ref_name, 'v')
     runs-on: macos-26
     steps:
       - uses: actions/checkout@v7
@@ -53,3 +56,57 @@ jobs:
             macOS/build/release/Mitra-for-MirAIe-$version.dmg \
             macOS/build/release/Mitra-for-MirAIe-$version.dmg.sha256 \
             --title "Mitra for MirAIe $version" --notes-file notes.md
+
+  android:
+    name: Build and publish the Android APK
+    if: startsWith(github.ref_name, 'android-v')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - uses: gradle/actions/setup-gradle@v5
+
+      - name: Check the tag matches the app's version
+        run: |
+          version="${GITHUB_REF_NAME#android-v}"
+          grep -q "versionName = \"$version\"" android/app/build.gradle.kts ||
+            { echo "::error::android/app/build.gradle.kts doesn't have versionName \"$version\""; exit 1; }
+
+      # The permanent release key: every release must be signed with it, or Android won't
+      # install it as an update. Kept in the repository secrets.
+      - name: Build the APK
+        working-directory: android
+        env:
+          KEYSTORE: ${{ secrets.ANDROID_SIGNING_KEYSTORE }}
+          MITRA_ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_SIGNING_PASSWORD }}
+        run: |
+          [ -n "$KEYSTORE" ] || { echo "::error::The ANDROID_SIGNING_KEYSTORE secret is missing"; exit 1; }
+          export MITRA_ANDROID_KEYSTORE="$RUNNER_TEMP/release.jks"
+          echo "$KEYSTORE" | base64 --decode > "$MITRA_ANDROID_KEYSTORE"
+          ./gradlew testDebugUnitTest assembleRelease
+          rm "$MITRA_ANDROID_KEYSTORE"
+          version="${GITHUB_REF_NAME#android-v}"
+          apk="Mitra-for-MirAIe-$version.apk"
+          cp app/build/outputs/apk/release/app-release.apk "$apk"
+          shasum -a 256 "$apk" > "$apk.sha256"
+
+      # Never marked latest: the Mac app's updater reads the latest release. Versions with a
+      # suffix (-rc.1, -beta.2) are published as pre-releases.
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version="${GITHUB_REF_NAME#android-v}"
+          awk -v v="$version" '$0 ~ "^## \\[" v "\\]" {on=1; next} /^## \[|^\[/ {on=0} on' android/CHANGELOG.md > notes.md
+          cat .github/release-install-android.md >> notes.md
+          prerelease=""
+          [[ "$version" == *-* ]] && prerelease="--prerelease"
+          gh release create "$GITHUB_REF_NAME" \
+            "android/Mitra-for-MirAIe-$version.apk" "android/Mitra-for-MirAIe-$version.apk.sha256" \
+            --title "Mitra for MirAIe for Android $version" --notes-file notes.md \
+            --latest=false $prerelease

@@ -14,28 +14,37 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # For now the app is only built for release-prep pull requests (release/… branches) and by
-  # hand; features are built locally and tested before merging, and tags build the release.
+  # The apps are only built for release-prep pull requests and by hand; features are built
+  # locally and tested before merging, and tags build the releases. The Mac and Android apps
+  # are versioned and released separately, so each release PR builds only its own app:
+  # release/android-<version> builds Android, any other release/<version> builds macOS.
   changes:
     name: Decide whether to build
     runs-on: ubuntu-latest
     outputs:
-      app: ${{ steps.decide.outputs.app }}
+      macos: ${{ steps.decide.outputs.macos }}
+      android: ${{ steps.decide.outputs.android }}
     steps:
       - id: decide
+        env:
+          BRANCH: ${{ github.head_ref }}
         run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ] ||
-             [[ "${{ github.head_ref }}" == release/* ]]; then
-            echo "app=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "app=false" >> "$GITHUB_OUTPUT"
+          macos=false android=false
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            macos=true android=true
+          elif [[ "$BRANCH" == release/android-* ]]; then
+            android=true
+          elif [[ "$BRANCH" == release/* ]]; then
+            macos=true
           fi
+          echo "macos=$macos" >> "$GITHUB_OUTPUT"
+          echo "android=$android" >> "$GITHUB_OUTPUT"
 
   # Required by branch protection. When skipped, GitHub counts it as passed.
   macos:
     name: macOS build and test
     needs: changes
-    if: needs.changes.outputs.app == 'true'
+    if: needs.changes.outputs.macos == 'true'
     runs-on: macos-26
     steps:
       - uses: actions/checkout@v7
@@ -57,7 +66,7 @@ jobs:
   android:
     name: Android build and test
     needs: changes
-    if: needs.changes.outputs.app == 'true'
+    if: needs.changes.outputs.android == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
