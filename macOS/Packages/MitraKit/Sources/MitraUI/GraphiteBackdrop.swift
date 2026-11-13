@@ -7,6 +7,8 @@ import MitraKit
 public struct GraphiteBackdrop: View {
     let isOn: Bool
     let animated: Bool
+    @Environment(\.isOffScreen) private var isOffScreen
+    @State private var clock = AnimationClock()
 
     public init(isOn: Bool, animated: Bool = true) {
         self.isOn = isOn
@@ -16,8 +18,8 @@ public struct GraphiteBackdrop: View {
     public var body: some View {
         Group {
             if animated {
-                TimelineView(.animation(minimumInterval: 1 / 20, paused: !isOn)) { context in
-                    mesh(time: context.date.timeIntervalSinceReferenceDate)
+                TimelineView(.animation(minimumInterval: 1 / 20, paused: isOffScreen || !isOn)) { context in
+                    mesh(time: clock.time(at: context.date.timeIntervalSinceReferenceDate))
                 }
             } else {
                 mesh(time: 0)
