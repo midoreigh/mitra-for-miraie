@@ -4,12 +4,15 @@ What's new in each release of Mitra for MirAIe for Mac. Versions follow
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html). The Android app is versioned
 separately; see [its changelog](android/CHANGELOG.md).
 
-## [Unreleased]
+## [1.5.2] - 2026-11-13
+
+Mitra now rests while you're not looking at it.
 
 ### Fixes
 
 - **Much lighter on your Mac.** The animated AC kept running after you closed the panel, using
-  CPU the whole time. It now pauses whenever the panel is closed or covered.
+  CPU the whole time. It now pauses whenever the panel is closed or covered, and picks up
+  where it left off when you open it again.
 
 ## [1.5.1] - 2026-10-31
 
@@ -150,6 +153,7 @@ for the Mac.
   build Mitra from source with your own Apple developer account.
 
 [Unreleased]: https://github.com/midoreigh/mitra-for-miraie/compare/v1.5.1...HEAD
+[1.5.2]: https://github.com/midoreigh/mitra-for-miraie/compare/v1.5.1...v1.5.2
 [1.5.1]: https://github.com/midoreigh/mitra-for-miraie/compare/v1.5.0...v1.5.1
 [1.5.0]: https://github.com/midoreigh/mitra-for-miraie/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/midoreigh/mitra-for-miraie/compare/v1.3.0...v1.4.0
