@@ -6,6 +6,11 @@ separately; see [its changelog](android/CHANGELOG.md).
 
 ## [Unreleased]
 
+### Fixes
+
+- **Much lighter on your Mac.** The animated AC kept running after you closed the panel, using
+  CPU the whole time. It now pauses whenever the panel is closed or covered.
+
 ## [1.5.1] - 2026-10-31
 
 ### What's new
