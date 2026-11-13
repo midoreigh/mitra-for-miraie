@@ -39,6 +39,7 @@ public struct ACUnitView: View {
     let statusText: String?
     let onStatusLightTap: (() -> Void)?
     @State private var motion = AirMotion()
+    @State private var clock = AnimationClock()
     /// Keeps the animation running while the AC finishes turning off.
     @State private var settling = false
     @Environment(\.isOffScreen) private var isOffScreen
@@ -60,7 +61,7 @@ public struct ACUnitView: View {
     public var body: some View {
         if animated {
             TimelineView(.animation(minimumInterval: 1 / 40, paused: isOffScreen || (!state.isOn && !settling))) { context in
-                ACUnitScene(state: state, time: context.date.timeIntervalSinceReferenceDate,
+                ACUnitScene(state: state, time: clock.time(at: context.date.timeIntervalSinceReferenceDate),
                             statusLight: statusLight, statusText: statusText, onStatusLightTap: onStatusLightTap,
                             motion: motion)
             }
